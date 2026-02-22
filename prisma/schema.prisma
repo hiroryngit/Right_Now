@@ -17,7 +17,7 @@ enum MatchStatus {
 }
 
 model Profile {
-  id           String   @id @default(uuid())
+  id           String   @id
   nickname     String
   isOnline     Boolean  @default(false)
   currentTag   String?

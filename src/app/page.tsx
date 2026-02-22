@@ -3,16 +3,26 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TagSelector } from "@/components/TagSelector/TagSelector";
+import { LoginModal } from "@/components/LoginModal/LoginModal";
+import { useAuth } from "@/hooks/useAuth";
 import type { PurposeTag } from "@/types";
 import styles from "./page.module.scss";
 
 export default function Home() {
   const router = useRouter();
+  const { user, loading } = useAuth();
   const [isOnline, setIsOnline] = useState(false);
   const [selectedTag, setSelectedTag] = useState<PurposeTag | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const handleGoOnline = () => {
     if (!selectedTag) return;
+
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
+
     setIsOnline(true);
     router.push("/map");
   };
@@ -33,12 +43,17 @@ export default function Home() {
         <button
           className={`${styles.button} ${selectedTag ? styles["button--ready"] : ""}`}
           onClick={handleGoOnline}
-          disabled={!selectedTag}
+          disabled={!selectedTag || loading}
           type="button"
         >
           {isOnline ? "オンライン中" : "オンラインにする"}
         </button>
       </main>
+
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
     </div>
   );
 }

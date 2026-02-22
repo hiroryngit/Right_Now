@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
+    "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.49.1",
     "mapbox-gl": "^3.9.4",
     "next": "16.1.6",
