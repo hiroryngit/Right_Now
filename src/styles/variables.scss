@@ -1,0 +1,45 @@
+// Brand Colors
+$color-primary: #ff6b35;
+$color-primary-dark: #e55a2b;
+$color-secondary: #1a1a2e;
+$color-accent: #16213e;
+$color-background: #0f0f23;
+$color-surface: #1a1a2e;
+$color-text: #ffffff;
+$color-text-muted: #a0a0b0;
+$color-success: #00c853;
+$color-danger: #ff1744;
+$color-warning: #ffab00;
+
+// Z-index
+$z-map: 1;
+$z-overlay: 10;
+$z-modal: 100;
+$z-toast: 200;
+
+// Breakpoints
+$bp-sm: 480px;
+$bp-md: 768px;
+$bp-lg: 1024px;
+
+// Safe Area (iOS notch / Android gesture bar)
+$safe-area-top: env(safe-area-inset-top, 0px);
+$safe-area-bottom: env(safe-area-inset-bottom, 0px);
+$safe-area-left: env(safe-area-inset-left, 0px);
+$safe-area-right: env(safe-area-inset-right, 0px);
+
+// Spacing
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+
+// Border Radius
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 24px;
+$radius-full: 9999px;
+
+// Timer
+$timer-duration: 30s;

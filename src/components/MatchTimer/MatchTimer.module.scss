@@ -1,0 +1,32 @@
+@use "@/styles/variables" as *;
+
+.timer {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+
+  &__bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: $radius-full;
+    overflow: hidden;
+  }
+
+  &__bar-fill {
+    height: 100%;
+    background: $color-primary;
+    border-radius: $radius-full;
+    transform-origin: left;
+    transition: transform 0.1s linear;
+  }
+
+  &__text {
+    font-size: 14px;
+    font-weight: 700;
+    color: $color-primary;
+    min-width: 36px;
+    text-align: right;
+  }
+}

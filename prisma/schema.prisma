@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MatchStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+model Profile {
+  id           String   @id @default(uuid())
+  nickname     String
+  isOnline     Boolean  @default(false)
+  currentTag   String?
+  lastLocation Unsupported("geography(Point, 4326)")?
+  rating       Float    @default(5.0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Match {
+  id          String      @id @default(uuid())
+  requesterId String
+  receiverId  String
+  status      MatchStatus @default(PENDING)
+  expiresAt   DateTime
+  createdAt   DateTime    @default(now())
+}

@@ -1,0 +1,8 @@
+@use "@/styles/variables" as *;
+
+.container {
+  width: 100%;
+  height: 100dvh;
+  position: relative;
+  z-index: $z-map;
+}

@@ -6,20 +6,27 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate"
   },
   "dependencies": {
+    "@prisma/client": "^6.4.1",
+    "@supabase/supabase-js": "^2.49.1",
+    "mapbox-gl": "^3.9.4",
     "next": "16.1.6",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "sass": "^1.85.0"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.6",
+    "eslint": "^10.0.1",
+    "eslint-config-next": "^0.2.4",
+    "prisma": "^6.4.1",
     "typescript": "^5"
   }
 }
