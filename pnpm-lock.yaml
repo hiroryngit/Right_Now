@@ -29,9 +29,6 @@ importers:
       react-dom:
         specifier: 19.2.3
         version: 19.2.3(react@19.2.3)
-      sass:
-        specifier: ^1.85.0
-        version: 1.97.3
     devDependencies:
       '@types/node':
         specifier: ^20
@@ -54,6 +51,9 @@ importers:
       prisma:
         specifier: ^6.4.1
         version: 6.19.2(typescript@5.9.3)
+      sass:
+        specifier: ^1.97.3
+        version: 1.97.3
       typescript:
         specifier: ^5
         version: 5.9.3
