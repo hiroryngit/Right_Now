@@ -1,65 +1,494 @@
-@use "@/styles/variables" as *;
-@use "@/styles/mixins" as *;
+// ── Design tokens ─────────────────────────────────────────────────────────────
+$bg:           #0b0f1a;
+$surface:      #131929;
+$accent:       #00e5ff;
+$accent2:      #ff6b35;
+$green:        #00ff8c;
+$red:          #ff3b5c;
+$text:         #f0f4ff;
+$muted:        #7a8aaa;
+$radius-sm:    8px;
+$radius-md:    16px;
+$radius-full:  9999px;
 
-.page {
+// ── Root ──────────────────────────────────────────────────────────────────────
+.root {
+  position: relative;
+  width: 100%;
+  max-width: 390px;
   min-height: 100dvh;
-  @include flex-center;
-  @include safe-area-padding;
-}
-
-.main {
+  margin: 0 auto;
+  background: $bg;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: $spacing-lg;
-  padding: $spacing-xl;
-  max-width: 400px;
-  width: 100%;
+  overflow: hidden;
+  font-family: "Noto Sans JP", "Hiragino Sans", sans-serif;
+  color: $text;
 }
 
-.title {
-  font-size: 48px;
-  font-weight: 800;
-  color: $color-primary;
-  letter-spacing: -1px;
-}
-
-.subtitle {
-  color: $color-text-muted;
-  font-size: 16px;
-  text-align: center;
-}
-
-.section {
-  width: 100%;
+// ── Top bar ───────────────────────────────────────────────────────────────────
+.topBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: $spacing-md;
+  justify-content: space-between;
+  padding: 14px 16px 0;
 }
 
-.label {
-  font-size: 14px;
-  color: $color-text-muted;
+.homeBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: $radius-sm;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+
+  &:hover { background: rgba(255, 255, 255, 0.22); }
 }
 
-.button {
-  width: 100%;
-  padding: $spacing-md;
-  border-radius: $radius-md;
-  font-size: 18px;
+.homeBtnIcon { font-size: 18px; }
+
+.earningsBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: $radius-full;
+  padding: 6px 16px;
+}
+
+.earningsSymbol {
+  font-size: 13px;
+  color: $muted;
+  font-weight: 600;
+}
+
+.earningsValue {
+  font-size: 17px;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.1);
-  color: $color-text-muted;
-  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+}
 
-  &--ready {
-    background: $color-primary;
-    color: $color-text;
+.topRight {
+  width: 40px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.timeLabel {
+  font-size: 12px;
+  color: $muted;
+}
+
+// ── Date label ────────────────────────────────────────────────────────────────
+.dateLabel {
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  font-size: 12px;
+  color: $muted;
+  letter-spacing: 1px;
+}
+
+// ── Map ───────────────────────────────────────────────────────────────────────
+.mapWrapper {
+  position: relative;
+  flex: 1;
+  background: #1a2235;
+  // Simulated map grid
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+    radial-gradient(ellipse at 40% 55%, #1e3a5f 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 30%, #1a2b45 0%, transparent 50%);
+  background-size: 40px 40px, 40px 40px, 100% 100%, 100% 100%;
+  overflow: hidden;
+}
+
+// Heatmap orange blob (busy area)
+.heatBlob {
+  position: absolute;
+  left: 28%;
+  top: 40%;
+  width: 160px;
+  height: 120px;
+  background: radial-gradient(ellipse, rgba(255, 120, 30, 0.35) 0%, rgba(255, 80, 0, 0.08) 60%, transparent 80%);
+  border-radius: 50%;
+  filter: blur(16px);
+  pointer-events: none;
+  animation: pulsate 3s ease-in-out infinite;
+}
+
+@keyframes pulsate {
+  0%, 100% { transform: scale(1);   opacity: 0.8; }
+  50%       { transform: scale(1.1); opacity: 1;   }
+}
+
+// Self marker
+.selfMarker {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.selfDot {
+  position: relative;
+  z-index: 2;
+  font-size: 22px;
+  color: $text;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  filter: drop-shadow(0 0 6px $accent);
+}
+
+.selfPulse {
+  position: absolute;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid rgba($accent, 0.4);
+  animation: selfPulse 2s ease-out infinite;
+}
+
+@keyframes selfPulse {
+  0%   { transform: scale(0.6); opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+// Nearby user dots
+.userDot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 8;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba($surface, 0.9);
+  border: 2px solid rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.25s, border-color 0.25s;
+  animation: dropIn 0.4s ease both;
+
+  &:hover { transform: translate(-50%, -50%) scale(1.15); }
+}
+
+.userDotHot {
+  border-color: $accent2;
+  box-shadow: 0 0 12px rgba($accent2, 0.5);
+}
+
+.userDotMatched {
+  border-color: $green;
+  box-shadow: 0 0 16px rgba($green, 0.7);
+  animation: matchPop 0.5s ease both;
+}
+
+.userDotIcon { font-size: 16px; }
+
+@keyframes dropIn {
+  from { opacity: 0; transform: translate(-50%, -60%); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+@keyframes matchPop {
+  0%   { transform: translate(-50%, -50%) scale(1); }
+  50%  { transform: translate(-50%, -50%) scale(1.4); }
+  100% { transform: translate(-50%, -50%) scale(1.1); }
+}
+
+// Search ring
+.searchRing {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px solid rgba($accent, 0.6);
+  animation: expandRing 1.8s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes expandRing {
+  0%   { transform: translate(-50%, -50%) scale(0.4); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+}
+
+// Match beam
+.matchBeam {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba($green, 0.6) 0%, transparent 70%);
+  animation: beamPop 0.6s ease both;
+  pointer-events: none;
+}
+
+@keyframes beamPop {
+  from { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  to   { transform: translate(-50%, -50%) scale(2);   opacity: 0.7; }
+}
+
+// ── Bottom panel ──────────────────────────────────────────────────────────────
+.bottomPanel {
+  position: absolute;
+  bottom: 60px;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+}
+
+// Purpose chips
+.purposeRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.purposeChip {
+  padding: 7px 14px;
+  border-radius: $radius-full;
+  background: rgba($surface, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: $muted;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover { border-color: rgba($accent, 0.4); color: $text; }
+}
+
+.purposeChipActive {
+  background: rgba($accent, 0.15);
+  border-color: $accent;
+  color: $accent;
+  font-weight: 600;
+}
+
+// Searching info
+.searchingInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba($surface, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba($accent, 0.25);
+  border-radius: $radius-md;
+  padding: 10px 20px;
+}
+
+.searchingLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: $accent;
+}
+
+.countdownBadge {
+  font-size: 20px;
+  font-weight: 700;
+  color: $text;
+  font-variant-numeric: tabular-nums;
+}
+
+// Match card
+.matchCard {
+  width: 100%;
+  background: rgba($surface, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba($green, 0.35);
+  border-radius: $radius-md;
+  padding: 16px 20px;
+  animation: slideUp 0.35s ease both;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.matchCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.matchFlash { font-size: 20px; animation: flash 0.6s ease infinite alternate; }
+
+@keyframes flash {
+  from { opacity: 1; }
+  to   { opacity: 0.4; }
+}
+
+.matchTitle {
+  font-size: 17px;
+  font-weight: 700;
+  color: $green;
+}
+
+.matchSub {
+  font-size: 13px;
+  color: $muted;
+  margin: 0 0 14px;
+}
+
+.matchActions {
+  display: flex;
+  gap: 10px;
+}
+
+.acceptBtn {
+  flex: 1;
+  padding: 12px;
+  border-radius: $radius-sm;
+  background: $green;
+  color: #000;
+  font-weight: 700;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+
+  &:hover { opacity: 0.85; }
+}
+
+.declineBtn {
+  padding: 12px 18px;
+  border-radius: $radius-sm;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: $muted;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+
+  &:hover { border-color: $red; color: $red; }
+}
+
+// Meeting card
+.meetingCard {
+  width: 100%;
+  background: rgba($surface, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba($accent2, 0.35);
+  border-radius: $radius-md;
+  padding: 16px 20px;
+  text-align: center;
+  animation: slideUp 0.35s ease both;
+}
+
+.meetingTimer {
+  font-size: 38px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: $accent2;
+  letter-spacing: 2px;
+}
+
+.meetingLabel {
+  font-size: 12px;
+  color: $muted;
+  margin: 4px 0 14px;
+}
+
+.endBtn {
+  padding: 10px 28px;
+  border-radius: $radius-sm;
+  background: rgba($red, 0.15);
+  border: 1px solid $red;
+  color: $red;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover { background: rgba($red, 0.3); }
+}
+
+// Go button
+.goBtn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: $accent2;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba($accent2, 0.5);
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+
+  &:hover:not(:disabled) {
+    transform: scale(1.08);
+    box-shadow: 0 6px 28px rgba($accent2, 0.65);
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
   }
+}
+
+.goBtnActive {
+  background: $red;
+  box-shadow: 0 4px 20px rgba($red, 0.5);
+}
+
+// ── Bottom nav ────────────────────────────────────────────────────────────────
+.bottomNav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: rgba($surface, 0.88);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 20;
+}
+
+.navItem {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px 20px;
+  border-radius: $radius-sm;
+  transition: background 0.2s;
+
+  &:hover { background: rgba(255,255,255,0.08); }
 }
