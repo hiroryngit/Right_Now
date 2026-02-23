@@ -1,0 +1,214 @@
+@use "@/styles/variables" as *;
+@use "@/styles/mixins" as *;
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: $z-modal;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  @include flex-center;
+  padding: $spacing-md;
+}
+
+.modal {
+  background: $color-surface;
+  border-radius: $radius-lg;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: $spacing-lg;
+  max-width: 380px;
+  width: 100%;
+  max-height: 85dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+
+  // Scrollbar styling
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+  }
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: $color-text;
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: $color-text-muted;
+  text-align: center;
+  margin-bottom: $spacing-xs;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: $color-primary;
+  padding-bottom: $spacing-xs;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sectionNote {
+  font-size: 12px;
+  color: $color-text-muted;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: $color-text;
+}
+
+.required {
+  color: $color-danger;
+  font-weight: 400;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: $radius-md;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: $color-text;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+
+  &::placeholder {
+    color: $color-text-muted;
+  }
+
+  &:focus {
+    border-color: $color-primary;
+  }
+}
+
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23a0a0b0' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+
+  option {
+    background: $color-surface;
+    color: $color-text;
+  }
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+// Interest chips
+.chipGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  padding: 6px 14px;
+  border-radius: $radius-full;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: $color-text-muted;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: rgba($color-primary, 0.4);
+    color: $color-text;
+  }
+}
+
+.chipActive {
+  background: rgba($color-primary, 0.15);
+  border-color: $color-primary;
+  color: $color-primary;
+  font-weight: 600;
+}
+
+// Radio group
+.radioGroup {
+  display: flex;
+  gap: 8px;
+}
+
+.radioLabel {
+  flex: 1;
+  padding: 10px;
+  border-radius: $radius-md;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: $color-text-muted;
+  font-size: 13px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.radioActive {
+  background: rgba($color-primary, 0.15);
+  border-color: $color-primary;
+  color: $color-primary;
+  font-weight: 600;
+}
+
+.radioInput {
+  display: none;
+}
+
+.error {
+  font-size: 13px;
+  color: $color-danger;
+  text-align: center;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 14px;
+  border-radius: $radius-md;
+  background: $color-primary;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover:not(:disabled) {
+    background: $color-primary-dark;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}

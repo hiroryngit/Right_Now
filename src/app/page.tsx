@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Map } from "@/components/Map/Map";
+import { LoginModal } from "@/components/LoginModal/LoginModal";
+import { ProfileSetup } from "@/components/ProfileSetup/ProfileSetup";
 import { useLocation } from "@/hooks/useLocation";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import styles from "./page.module.scss";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -10,7 +14,7 @@ type AppStatus = "idle" | "online" | "searching" | "matched" | "meeting";
 
 interface NearbyUser {
   id: string;
-  x: number; // % position on map
+  x: number;
   y: number;
   purpose: string;
   distanceM: number;
@@ -34,11 +38,15 @@ export default function MatchMapPage() {
   const [selectedPurpose, setSelectedPurpose] = useState<string | null>(null);
   const [countdown, setCountdown]     = useState<number | null>(null);
   const [matchedUser, setMatchedUser] = useState<NearbyUser | null>(null);
-  const [elapsed, setElapsed]         = useState(0); // seconds after match
+  const [elapsed, setElapsed]         = useState(0);
   const [searchingLabel, setSearchingLabel] = useState("マッチングを探しています");
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { coordinates } = useLocation(true);
+  const { user } = useAuth();
+  const { profile, loading: profileLoading, refetch: refetchProfile } = useProfile(user);
 
   // Countdown to match
   useEffect(() => {
@@ -48,7 +56,6 @@ export default function MatchMapPage() {
       setCountdown((c) => {
         if (c === null || c <= 1) {
           clearInterval(interval);
-          // simulate match
           const target = MOCK_USERS.find((u) => u.purpose === selectedPurpose) ?? MOCK_USERS[0];
           setMatchedUser(target);
           setStatus("matched");
@@ -88,8 +95,37 @@ export default function MatchMapPage() {
 
   const handleGoOnline = () => {
     if (!selectedPurpose) return;
+
+    // Not logged in → show login modal
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    // Logged in but no profile → show profile setup
+    if (!profileLoading && !profile) {
+      setShowProfileSetup(true);
+      return;
+    }
+
     setStatus("searching");
   };
+
+  const handleLoginClose = () => {
+    setShowLoginModal(false);
+  };
+
+  const handleProfileComplete = () => {
+    refetchProfile();
+    setShowProfileSetup(false);
+  };
+
+  // After login, check if profile exists
+  useEffect(() => {
+    if (user && !profileLoading && !profile && !showLoginModal) {
+      setShowProfileSetup(true);
+    }
+  }, [user, profile, profileLoading, showLoginModal]);
 
   const handleAcceptMatch = () => setStatus("meeting");
 
@@ -106,8 +142,6 @@ export default function MatchMapPage() {
     return `${m}:${s}`;
   };
 
-  const isOnline = status !== "idle";
-
   return (
     <div className={styles.root}>
       {/* ── Top bar ── */}
@@ -115,19 +149,11 @@ export default function MatchMapPage() {
         <button className={styles.homeBtn} aria-label="ホーム">
           <span className={styles.homeBtnIcon}>⌂</span>
         </button>
-
-
-        <div className={styles.topRight}>
-          <span className={styles.timeLabel}>{new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}</span>
-        </div>
       </header>
-
-      <p className={styles.dateLabel}>今日</p>
 
       {/* ── Map area ── */}
       <Map center={coordinates}>
         <div className={styles.mapOverlay}>
-          {/* Searching ring */}
           {status === "searching" && <div className={styles.searchRing} />}
         </div>
       </Map>
@@ -200,6 +226,10 @@ export default function MatchMapPage() {
         <button className={styles.navItem} aria-label="シールド">🛡</button>
         <button className={styles.navItem} aria-label="グラフ">📊</button>
       </nav>
+
+      {/* ── Modals ── */}
+      <LoginModal isOpen={showLoginModal} onClose={handleLoginClose} />
+      <ProfileSetup isOpen={showProfileSetup} onComplete={handleProfileComplete} />
     </div>
   );
 }

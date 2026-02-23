@@ -17,14 +17,23 @@ enum MatchStatus {
 }
 
 model Profile {
-  id           String   @id
-  nickname     String
-  isOnline     Boolean  @default(false)
-  currentTag   String?
-  lastLocation Unsupported("geography(Point, 4326)")?
-  rating       Float    @default(5.0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String   @id
+  nickname        String
+  age             String
+  prefecture      String
+  city            String?
+  occupation      String
+  education       String?
+  meetingPurpose  String?
+  bio             String?
+  interests       String[]
+  preferredGender String
+  isOnline        Boolean  @default(false)
+  currentTag      String?
+  lastLocation    Unsupported("geography(Point, 4326)")?
+  rating          Float    @default(5.0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model Match {
