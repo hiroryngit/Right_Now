@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import styles from "./Map.module.scss";
@@ -8,11 +8,14 @@ import type { Coordinates } from "@/types";
 
 interface MapProps {
   center: Coordinates | null;
+  children?: ReactNode;
+  showLocationMarker?: boolean;
 }
 
-export function Map({ center }: MapProps) {
+export function Map({ center, children, showLocationMarker = true }: MapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markerRef = useRef<mapboxgl.Marker | null>(null);
 
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
@@ -32,10 +35,12 @@ export function Map({ center }: MapProps) {
     });
 
     return () => {
+      markerRef.current?.remove();
+      markerRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [center]);
+  }, []);
 
   useEffect(() => {
     if (!mapRef.current || !center) return;
@@ -45,5 +50,29 @@ export function Map({ center }: MapProps) {
     });
   }, [center]);
 
-  return <div ref={mapContainer} className={styles.container} />;
+  useEffect(() => {
+    if (!mapRef.current || !center || !showLocationMarker) return;
+
+    if (!markerRef.current) {
+      const el = document.createElement("div");
+      el.className = styles.locationMarker;
+      el.innerHTML = `
+        <span class="${styles.locationPulse}"></span>
+        <span class="${styles.locationDot}"></span>
+      `;
+
+      markerRef.current = new mapboxgl.Marker({ element: el })
+        .setLngLat([center.longitude, center.latitude])
+        .addTo(mapRef.current);
+    } else {
+      markerRef.current.setLngLat([center.longitude, center.latitude]);
+    }
+  }, [center, showLocationMarker]);
+
+  return (
+    <div className={styles.wrapper}>
+      <div ref={mapContainer} className={styles.container} />
+      {children && <div className={styles.overlay}>{children}</div>}
+    </div>
+  );
 }

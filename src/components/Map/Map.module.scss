@@ -1,8 +1,71 @@
 @use "@/styles/variables" as *;
 
+.wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  flex: 1;
+}
+
 .container {
   width: 100%;
-  height: 100dvh;
-  position: relative;
+  height: 100%;
+  position: absolute;
+  inset: 0;
   z-index: $z-map;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: $z-overlay;
+  pointer-events: none;
+
+  // Allow interactive elements inside the overlay to receive clicks
+  button, a, [data-interactive] {
+    pointer-events: auto;
+  }
+}
+
+// Current location marker
+.locationMarker {
+  position: relative;
+  width: 20px;
+  height: 20px;
+}
+
+.locationDot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #4285f4;
+  border: 2.5px solid #fff;
+  box-shadow: 0 0 8px rgba(66, 133, 244, 0.6);
+}
+
+.locationPulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(66, 133, 244, 0.2);
+  animation: locationPulse 2s ease-out infinite;
+}
+
+@keyframes locationPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
 }

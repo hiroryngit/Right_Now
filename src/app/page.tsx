@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { Map } from "@/components/Map/Map";
+import { useLocation } from "@/hooks/useLocation";
 import styles from "./page.module.scss";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -33,8 +35,10 @@ export default function MatchMapPage() {
   const [countdown, setCountdown]     = useState<number | null>(null);
   const [matchedUser, setMatchedUser] = useState<NearbyUser | null>(null);
   const [elapsed, setElapsed]         = useState(0); // seconds after match
-  const [earnings, setEarnings]       = useState(0);
+  const [searchingLabel, setSearchingLabel] = useState("マッチングを探しています");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { coordinates } = useLocation(true);
 
   // Countdown to match
   useEffect(() => {
@@ -56,6 +60,19 @@ export default function MatchMapPage() {
     return () => clearInterval(interval);
   }, [status, selectedPurpose]);
 
+  // Cycling status label during search
+  useEffect(() => {
+    if (status !== "searching") return;
+    setSearchingLabel("マッチングを探しています");
+    const labels = ["マッチングを探しています", "オンラインです"];
+    let index = 0;
+    const interval = setInterval(() => {
+      index = (index + 1) % labels.length;
+      setSearchingLabel(labels[index]);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [status]);
+
   // Meeting timer (max 30min)
   useEffect(() => {
     if (status !== "meeting") return;
@@ -72,7 +89,6 @@ export default function MatchMapPage() {
   const handleGoOnline = () => {
     if (!selectedPurpose) return;
     setStatus("searching");
-    setEarnings(0);
   };
 
   const handleAcceptMatch = () => setStatus("meeting");
@@ -82,7 +98,6 @@ export default function MatchMapPage() {
     setMatchedUser(null);
     setElapsed(0);
     setCountdown(null);
-    setEarnings((e) => e + 500); // mock reward
   };
 
   const formatTime = (sec: number) => {
@@ -101,10 +116,6 @@ export default function MatchMapPage() {
           <span className={styles.homeBtnIcon}>⌂</span>
         </button>
 
-        <div className={styles.earningsBadge}>
-          <span className={styles.earningsSymbol}>¥</span>
-          <span className={styles.earningsValue}>{earnings.toLocaleString()}</span>
-        </div>
 
         <div className={styles.topRight}>
           <span className={styles.timeLabel}>{new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}</span>
@@ -114,39 +125,12 @@ export default function MatchMapPage() {
       <p className={styles.dateLabel}>今日</p>
 
       {/* ── Map area ── */}
-      <div className={styles.mapWrapper}>
-        {/* Heatmap blob */}
-        <div className={styles.heatBlob} />
-
-        {/* Nearby user dots */}
-        {isOnline && MOCK_USERS.map((u) => (
-          <div
-            key={u.id}
-            className={`${styles.userDot} ${u.isHot ? styles.userDotHot : ""} ${matchedUser?.id === u.id ? styles.userDotMatched : ""}`}
-            style={{ left: `${u.x}%`, top: `${u.y}%` }}
-            title={`${u.purpose} · ${u.distanceM}m`}
-          >
-            <span className={styles.userDotIcon}>🍽</span>
-          </div>
-        ))}
-
-        {/* Self marker */}
-        <div className={styles.selfMarker}>
-          <div className={styles.selfPulse} />
-          <div className={styles.selfDot}>▲</div>
+      <Map center={coordinates}>
+        <div className={styles.mapOverlay}>
+          {/* Searching ring */}
+          {status === "searching" && <div className={styles.searchRing} />}
         </div>
-
-        {/* Searching ring */}
-        {status === "searching" && <div className={styles.searchRing} />}
-
-        {/* Match beam */}
-        {status === "matched" && matchedUser && (
-          <div
-            className={styles.matchBeam}
-            style={{ left: `${matchedUser.x}%`, top: `${matchedUser.y}%` }}
-          />
-        )}
-      </div>
+      </Map>
 
       {/* ── Bottom panel ── */}
       <div className={styles.bottomPanel}>
@@ -169,7 +153,8 @@ export default function MatchMapPage() {
         {/* Searching state */}
         {status === "searching" && (
           <div className={styles.searchingInfo}>
-            <span className={styles.searchingLabel}>マッチング中</span>
+            <span className={styles.searchingDot} />
+            <span key={searchingLabel} className={styles.searchingLabel}>{searchingLabel}</span>
             <span className={styles.countdownBadge}>{countdown}s</span>
           </div>
         )}
@@ -205,7 +190,7 @@ export default function MatchMapPage() {
             onClick={status === "idle" ? handleGoOnline : () => setStatus("idle")}
             disabled={status === "idle" && !selectedPurpose}
           >
-            {status === "idle" ? "出発" : "キャンセル"}
+            {status === "idle" ? "マッチング開始" : "キャンセル"}
           </button>
         )}
       </div>
