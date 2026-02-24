@@ -27,6 +27,36 @@
   }
 }
 
+// Recenter button
+.recenterBtn {
+  position: absolute;
+  bottom: 140px;
+  right: 16px;
+  z-index: $z-overlay;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(19, 25, 41, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f0f4ff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.15s;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+
+  &:hover {
+    background: rgba(19, 25, 41, 0.95);
+    transform: scale(1.08);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
 // Current location marker
 .locationMarker {
   position: relative;

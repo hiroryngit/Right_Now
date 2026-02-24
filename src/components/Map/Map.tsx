@@ -3,6 +3,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { LocateFixed } from "lucide-react";
 import styles from "./Map.module.scss";
 import type { Coordinates } from "@/types";
 
@@ -108,9 +109,27 @@ export function Map({ center, children, showLocationMarker = true }: MapProps) {
     }
   }, [center, showLocationMarker]);
 
+  const handleRecenter = () => {
+    if (!mapRef.current || !center) return;
+    mapRef.current.flyTo({
+      center: [center.longitude, center.latitude],
+      zoom: 15,
+      essential: true,
+    });
+  };
+
   return (
     <div className={styles.wrapper}>
       <div ref={mapContainer} className={styles.container} />
+      {center && (
+        <button
+          className={styles.recenterBtn}
+          onClick={handleRecenter}
+          aria-label="現在地に戻る"
+        >
+          <LocateFixed size={20} />
+        </button>
+      )}
       {children && <div className={styles.overlay}>{children}</div>}
     </div>
   );
