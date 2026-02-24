@@ -82,12 +82,8 @@ export function Map({ center, children, showLocationMarker = true }: MapProps) {
       mapRef.current.jumpTo({
         center: [center.longitude, center.latitude],
       });
-    } else {
-      mapRef.current.flyTo({
-        center: [center.longitude, center.latitude],
-        essential: true,
-      });
     }
+    // 以降の位置更新ではマップを動かさない（ユーザーが自由にパンできるように）
   }, [center]);
 
   useEffect(() => {
