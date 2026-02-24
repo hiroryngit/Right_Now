@@ -6,6 +6,26 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import styles from "./Map.module.scss";
 import type { Coordinates } from "@/types";
 
+const LAST_LOCATION_KEY = "rightnow_last_location";
+const DEFAULT_CENTER: [number, number] = [139.6917, 35.6895];
+
+function getCachedCenter(): [number, number] {
+  try {
+    const cached = localStorage.getItem(LAST_LOCATION_KEY);
+    if (cached) {
+      const { lng, lat } = JSON.parse(cached);
+      return [lng, lat];
+    }
+  } catch {}
+  return DEFAULT_CENTER;
+}
+
+function cacheCenter(lng: number, lat: number) {
+  try {
+    localStorage.setItem(LAST_LOCATION_KEY, JSON.stringify({ lng, lat }));
+  } catch {}
+}
+
 interface MapProps {
   center: Coordinates | null;
   children?: ReactNode;
@@ -16,6 +36,7 @@ export function Map({ center, children, showLocationMarker = true }: MapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const initialCenterApplied = useRef(false);
 
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
@@ -25,12 +46,19 @@ export function Map({ center, children, showLocationMarker = true }: MapProps) {
 
     mapboxgl.accessToken = token;
 
+    const initialCenter = center
+      ? [center.longitude, center.latitude] as [number, number]
+      : getCachedCenter();
+
+    if (center) {
+      initialCenterApplied.current = true;
+      cacheCenter(center.longitude, center.latitude);
+    }
+
     mapRef.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/dark-v11",
-      center: center
-        ? [center.longitude, center.latitude]
-        : [139.6917, 35.6895],
+      center: initialCenter,
       zoom: 15,
     });
 
@@ -44,10 +72,21 @@ export function Map({ center, children, showLocationMarker = true }: MapProps) {
 
   useEffect(() => {
     if (!mapRef.current || !center) return;
-    mapRef.current.flyTo({
-      center: [center.longitude, center.latitude],
-      essential: true,
-    });
+
+    cacheCenter(center.longitude, center.latitude);
+
+    if (!initialCenterApplied.current) {
+      // First time getting location — jump directly, no animation
+      initialCenterApplied.current = true;
+      mapRef.current.jumpTo({
+        center: [center.longitude, center.latitude],
+      });
+    } else {
+      mapRef.current.flyTo({
+        center: [center.longitude, center.latitude],
+        essential: true,
+      });
+    }
   }, [center]);
 
   useEffect(() => {
