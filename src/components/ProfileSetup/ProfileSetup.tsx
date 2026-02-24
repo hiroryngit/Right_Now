@@ -8,6 +8,7 @@ import {
   OCCUPATIONS,
   EDUCATIONS,
   MEETING_PURPOSES,
+  MATCHING_TAGS,
   INTERESTS,
   GENDER_PREFERENCES,
 } from "@/constants/profile";
@@ -27,6 +28,7 @@ export function ProfileSetup({ isOpen, onComplete }: ProfileSetupProps) {
   const [education, setEducation] = useState("");
   const [meetingPurpose, setMeetingPurpose] = useState("");
   const [bio, setBio] = useState("");
+  const [currentTag, setCurrentTag] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
   const [preferredGender, setPreferredGender] = useState("");
 
@@ -40,6 +42,7 @@ export function ProfileSetup({ isOpen, onComplete }: ProfileSetupProps) {
     age !== "" &&
     prefecture !== "" &&
     occupation !== "" &&
+    currentTag !== "" &&
     preferredGender !== "";
 
   const toggleInterest = (interest: string) => {
@@ -74,6 +77,7 @@ export function ProfileSetup({ isOpen, onComplete }: ProfileSetupProps) {
           education: education || null,
           meetingPurpose: meetingPurpose || null,
           bio: bio.trim() || null,
+          currentTag,
           interests,
           preferredGender,
         }),
@@ -178,7 +182,28 @@ export function ProfileSetup({ isOpen, onComplete }: ProfileSetupProps) {
             />
           </div>
 
-          {/* ── セクション3: 興味・趣味 ── */}
+          {/* ── セクション3: マッチングタグ ── */}
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>マッチングタグ</h3>
+            <p className={styles.sectionNote}>どんな目的で会いたいですか？</p>
+            <label className={styles.label}>
+              タグ <span className={styles.required}>*</span>
+            </label>
+            <div className={styles.chipGrid}>
+              {MATCHING_TAGS.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  className={`${styles.chip} ${currentTag === tag ? styles.chipActive : ""}`}
+                  onClick={() => setCurrentTag(tag)}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── セクション4: 興味・趣味 ── */}
           <div className={styles.section}>
             <h3 className={styles.sectionTitle}>興味あること</h3>
             <div className={styles.chipGrid}>

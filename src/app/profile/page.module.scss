@@ -1,0 +1,160 @@
+@use "@/styles/variables" as *;
+
+.page {
+  min-height: 100dvh;
+  background: $color-background;
+  color: $color-text;
+  font-family: "Noto Sans JP", "Hiragino Sans", sans-serif;
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  width: 100%;
+  max-width: 390px;
+  padding: $spacing-lg $spacing-md;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  color: $color-text-muted;
+  font-size: 14px;
+}
+
+.emptyMessage {
+  text-align: center;
+  color: $color-text-muted;
+  font-size: 15px;
+  padding: $spacing-xl 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: $spacing-sm;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.card {
+  background: $color-surface;
+  border-radius: $radius-md;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: $spacing-md;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.cardTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: $color-primary;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-xs 0;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  color: $color-text-muted;
+}
+
+.fieldValue {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.tag {
+  font-size: 13px;
+  font-weight: 600;
+  color: #00e5ff;
+  background: rgba(0, 229, 255, 0.12);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 229, 255, 0.3);
+}
+
+.bio {
+  font-size: 14px;
+  line-height: 1.6;
+  color: $color-text;
+  white-space: pre-wrap;
+}
+
+.chipGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: $color-text-muted;
+}
+
+.privateNote {
+  font-size: 11px;
+  color: $color-text-muted;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  padding-top: $spacing-sm;
+}
+
+.backBtn {
+  width: 100%;
+  padding: 14px;
+  border-radius: $radius-md;
+  background: $color-primary;
+  border: none;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: $color-primary-dark;
+  }
+}
+
+.logoutBtn {
+  width: 100%;
+  padding: 12px;
+  border-radius: $radius-md;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: $color-text-muted;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: $color-danger;
+    color: $color-danger;
+  }
+}

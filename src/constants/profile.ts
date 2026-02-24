@@ -126,6 +126,14 @@ export const INTERESTS = [
   "ペット",
 ] as const;
 
+export const MATCHING_TAGS = [
+  "ランチ",
+  "コーヒー",
+  "散歩",
+  "勉強",
+  "雑談",
+] as const;
+
 export const GENDER_PREFERENCES = [
   "同性のみ",
   "異性のみ",
