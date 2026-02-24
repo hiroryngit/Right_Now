@@ -1,0 +1,43 @@
+.adminPanel {
+  position: absolute;
+  top: 80px;
+  left: 20px;
+  right: 20px;
+  z-index: 100;
+  background: rgba(#131929, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(#00e5ff, 0.3);
+  border-radius: 12px;
+  padding: 12px;
+  color: #fff;
+
+  .title {
+    font-size: 10px;
+    color: #00e5ff;
+    margin-bottom: 8px;
+    font-weight: bold;
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+
+    .btns {
+      display: flex;
+      gap: 8px;
+      button {
+        width: 30px;
+        height: 30px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+        &:hover { background: rgba(0, 229, 255, 0.2); }
+      }
+    }
+  }
+}

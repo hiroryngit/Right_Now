@@ -8,7 +8,11 @@ import { ProfileSetup } from "@/components/ProfileSetup/ProfileSetup";
 import { useLocation } from "@/hooks/useLocation";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { AdminPanel } from "@/components/Admin/AdminPanel";
+import { useDemoUsers } from "@/hooks/useDemoUsers";
+import { Gender, Profile } from "../types/user";
 import styles from "./page.module.scss";
+
 
 type AppStatus = "idle" | "searching";
 
@@ -18,10 +22,15 @@ export default function MatchMapPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const router = useRouter();
+  
+  
 
   const { coordinates } = useLocation(true);
   const { user } = useAuth();
+  
   const { profile, checked, refetch: refetchProfile } = useProfile(user);
+  // src/app/page.tsx の Hook 呼び出し部分
+  const { addDemoUser, removeDemoUser, counts } = useDemoUsers(coordinates as any);
 
   // Cycling status label during search
   useEffect(() => {
@@ -35,6 +44,20 @@ export default function MatchMapPage() {
     }, 3000);
     return () => clearInterval(interval);
   }, [status]);
+
+  // 82行目あたりに追加
+  useEffect(() => {
+    if (status !== "searching") return;
+    const timer = setTimeout(() => {
+      alert("デモユーザーとマッチングしました！");
+      setStatus("idle");
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [status]);
+
+  
+
+  
 
   const handleGoOnline = () => {
     // 未ログイン → ログインモーダル
@@ -74,9 +97,26 @@ export default function MatchMapPage() {
   }, [user, checked, profile, showLoginModal]);
 
   const hasTag = !!profile?.currentTag;
+  // return のすぐ前あたり
+
+
+  
 
   return (
+    
+
+
+
     <div className={styles.root}>
+     {/* 89行目あたりに追加 */}
+      {profile?.role === "admin" && (
+        <AdminPanel 
+          counts={counts}
+          onAdd={(gender: Gender) => addDemoUser(gender)}
+          onRemove={(gender: Gender) => removeDemoUser(gender)}
+  />
+)}
+        
       {/* ── Top bar ── */}
       <header className={styles.topBar}>
         <button className={styles.homeBtn} aria-label="プロフィール" onClick={() => router.push("/profile")}>
@@ -110,6 +150,16 @@ export default function MatchMapPage() {
           {status === "idle" ? "マッチング開始" : "キャンセル"}
         </button>
       </div>
+
+
+      
+
+
+      
+      
+
+
+      
 
       {/* ── Modals ── */}
       <LoginModal isOpen={showLoginModal} onClose={handleLoginClose} />

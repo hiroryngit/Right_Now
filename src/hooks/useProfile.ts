@@ -2,31 +2,20 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { User } from "@supabase/supabase-js";
+// ✅ ここでインポートした Profile 型だけを使うようにします
+import { Profile } from "@/types/user"; 
 
-interface Profile {
-  id: string;
-  nickname: string;
-  gender: string;
-  age: string;
-  prefecture: string;
-  city: string | null;
-  occupation: string;
-  education: string | null;
-  meetingPurpose: string | null;
-  currentTag: string | null;
-  bio: string | null;
-  interests: string[];
-  preferredGender: string;
-}
+// ❌ 8行目〜21行目の「interface Profile { ... }」は、まるごと削除してください！
 
 interface UseProfileResult {
   profile: Profile | null;
   loading: boolean;
-  checked: boolean; // DBへの問い合わせが完了したかどうか
+  checked: boolean; 
   refetch: () => void;
 }
 
 export function useProfile(user: User | null): UseProfileResult {
+  // useState の型指定も自動的に外部の Profile になります
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState(false);
