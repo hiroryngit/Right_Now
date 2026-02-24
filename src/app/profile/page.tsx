@@ -1,12 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { LoginModal } from "@/components/LoginModal/LoginModal";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./page.module.scss";
 
 export default function ProfilePage() {
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading, checked } = useProfile(user);
@@ -30,9 +33,13 @@ export default function ProfilePage() {
       <div className={styles.page}>
         <div className={styles.container}>
           <p className={styles.emptyMessage}>ログインしていません</p>
-          <button className={styles.backBtn} onClick={() => router.push("/")}>
+          <button className={styles.backBtn} onClick={() => setShowLoginModal(true)}>
+            ログイン
+          </button>
+          <button className={styles.logoutBtn} onClick={() => router.push("/")}>
             マップに戻る
           </button>
+          <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
         </div>
       </div>
     );
