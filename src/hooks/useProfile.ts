@@ -6,6 +6,7 @@ import type { User } from "@supabase/supabase-js";
 interface Profile {
   id: string;
   nickname: string;
+  gender: string;
   age: string;
   prefecture: string;
   city: string | null;

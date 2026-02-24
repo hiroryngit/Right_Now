@@ -73,6 +73,10 @@ export default function ProfilePage() {
             <span className={styles.fieldValue}>{profile.nickname}</span>
           </div>
           <div className={styles.field}>
+            <span className={styles.fieldLabel}>性別</span>
+            <span className={styles.fieldValue}>{profile.gender}</span>
+          </div>
+          <div className={styles.field}>
             <span className={styles.fieldLabel}>年齢</span>
             <span className={styles.fieldValue}>{profile.age}</span>
           </div>

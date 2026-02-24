@@ -1,3 +1,8 @@
+export const GENDERS = [
+  "男性",
+  "女性",
+] as const;
+
 export const AGE_OPTIONS = [
   "18~19",
   "20代前半",

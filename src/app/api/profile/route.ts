@@ -26,11 +26,14 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { nickname, age, prefecture, city, occupation, education, meetingPurpose, currentTag, bio, interests, preferredGender } = body;
+  const { nickname, gender, age, prefecture, city, occupation, education, meetingPurpose, currentTag, bio, interests, preferredGender } = body;
 
   // Required field validation
   if (!nickname || typeof nickname !== "string" || nickname.trim().length === 0) {
     return NextResponse.json({ error: "ニックネームは必須です" }, { status: 400 });
+  }
+  if (!gender) {
+    return NextResponse.json({ error: "性別は必須です" }, { status: 400 });
   }
   if (!age) {
     return NextResponse.json({ error: "年齢は必須です" }, { status: 400 });
@@ -50,6 +53,7 @@ export async function POST(request: Request) {
 
   const data = {
     nickname: nickname.trim(),
+    gender,
     age,
     prefecture,
     city: city || null,

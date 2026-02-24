@@ -19,6 +19,7 @@ enum MatchStatus {
 model Profile {
   id              String   @id
   nickname        String
+  gender          String
   age             String
   prefecture      String
   city            String?

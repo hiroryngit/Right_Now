@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  GENDERS,
   AGE_OPTIONS,
   PREFECTURES,
   CITIES,
@@ -21,6 +22,7 @@ interface ProfileSetupProps {
 
 export function ProfileSetup({ isOpen, onComplete }: ProfileSetupProps) {
   const [nickname, setNickname] = useState("");
+  const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
   const [prefecture, setPrefecture] = useState("");
   const [city, setCity] = useState("");
@@ -39,6 +41,7 @@ export function ProfileSetup({ isOpen, onComplete }: ProfileSetupProps) {
 
   const isValid =
     nickname.trim().length > 0 &&
+    gender !== "" &&
     age !== "" &&
     prefecture !== "" &&
     occupation !== "" &&
@@ -70,6 +73,7 @@ export function ProfileSetup({ isOpen, onComplete }: ProfileSetupProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nickname: nickname.trim(),
+          gender,
           age,
           prefecture,
           city: city || null,
@@ -120,6 +124,25 @@ export function ProfileSetup({ isOpen, onComplete }: ProfileSetupProps) {
               onChange={(e) => setNickname(e.target.value)}
               maxLength={20}
             />
+
+            <label className={styles.label}>
+              性別 <span className={styles.required}>*</span>
+            </label>
+            <div className={styles.radioGroup}>
+              {GENDERS.map((g) => (
+                <label key={g} className={`${styles.radioLabel} ${gender === g ? styles.radioActive : ""}`}>
+                  <input
+                    type="radio"
+                    name="gender"
+                    value={g}
+                    checked={gender === g}
+                    onChange={(e) => setGender(e.target.value)}
+                    className={styles.radioInput}
+                  />
+                  {g}
+                </label>
+              ))}
+            </div>
 
             <label className={styles.label}>
               年齢 <span className={styles.required}>*</span>
