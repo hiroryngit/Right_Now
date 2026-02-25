@@ -33,7 +33,8 @@ export default function MatchMapPage() {
   
   const { profile, checked, refetch: refetchProfile } = useProfile(user);
   // src/app/page.tsx の Hook 呼び出し部分
-  const { addDemoUser, removeDemoUser, counts } = useDemoUsers(coordinates as any);
+  const demoLocation = coordinates ? { lat: coordinates.latitude, lng: coordinates.longitude } : null;
+  const { demoUsers, addDemoUser, removeDemoUser, counts } = useDemoUsers(demoLocation);
 
   // Cycling status label during search
   useEffect(() => {
@@ -132,7 +133,7 @@ export default function MatchMapPage() {
       </header>
 
       {/* ── Map area ── */}
-      <Map center={coordinates}>
+      <Map center={coordinates} demoUsers={demoUsers}>
         <div className={styles.mapOverlay}>
           {status === "searching" && <div className={styles.searchRing} />}
         </div>

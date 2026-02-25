@@ -1,40 +1,116 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Gender, Profile } from "@/types/user";
 
-/**
- * デモユーザーを管理・生成するためのカスタムフック
- * @param currentLocation 管理者の現在地（nullを許容することで初期ロード時のエラーを回避）
- */
+interface DemoUserCoords {
+  id: string;
+  nickname: string;
+  gender: string;
+  lat: number;
+  lng: number;
+}
+
 export const useDemoUsers = (currentLocation: { lat: number; lng: number } | null) => {
-  // マップに表示するためのデモユーザーリスト
   const [demoUsers, setDemoUsers] = useState<Profile[]>([]);
+  const counterRef = useRef<Record<Gender, number>>({ man: 0, woman: 0 });
+  const loadedRef = useRef(false);
 
-  /**
-   * 新しいデモユーザーを追加する
-   * @param gender 性別 ('man' | 'woman')
-   */
+  // DBからデモユーザーを読み込む
+  useEffect(() => {
+    if (loadedRef.current) return;
+    loadedRef.current = true;
+
+    fetch("/api/demo-users")
+      .then((res) => res.json())
+      .then((data) => {
+        const users: DemoUserCoords[] = data.users || [];
+        const profiles: Profile[] = users.map((u) => ({
+          id: u.id,
+          nickname: u.nickname,
+          gender: u.gender,
+          age: "20代",
+          prefecture: "東京都",
+          city: null,
+          occupation: "会社員",
+          education: null,
+          preferredGender: "both",
+          role: "user" as const,
+          isDemo: true,
+          currentTag: null,
+          meetingPurpose: null,
+          bio: null,
+          interests: [],
+          coordinates: { lat: u.lat, lng: u.lng },
+          createdAt: new Date(),
+        }));
+
+        // カウンターを復元
+        for (const p of profiles) {
+          if (p.gender === "man") counterRef.current.man++;
+          if (p.gender === "woman") counterRef.current.woman++;
+        }
+
+        setDemoUsers(profiles);
+      })
+      .catch(() => {});
+  }, []);
+
+  // ランダムウォーク
+  useEffect(() => {
+    if (demoUsers.length === 0) return;
+
+    const interval = setInterval(() => {
+      setDemoUsers((prev) =>
+        prev.map((u) => ({
+          ...u,
+          coordinates: {
+            lat: u.coordinates.lat + (Math.random() - 0.5) * 0.001,
+            lng: u.coordinates.lng + (Math.random() - 0.5) * 0.001,
+          },
+        }))
+      );
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [demoUsers.length]);
+
   const addDemoUser = async (gender: Gender) => {
-    // 1. 座標がまだ取得できていない場合は処理を中断
-    if (!currentLocation) {
-      console.warn("現在地が取得できていないため、デモユーザーを追加できません。");
-      return;
-    }
+    if (!currentLocation) return;
 
-    // 2. 現在の同じ性別のユーザー数を数えて、次の連番を決定
-    const sameGenderCount = demoUsers.filter((u) => u.gender === gender).length;
-    const nextNum = sameGenderCount + 1;
-    const name = `${gender}${nextNum}`;
+    counterRef.current[gender] += 1;
+    const name = `${gender}${counterRef.current[gender]}`;
 
-    // 3. プロフィールのランダム生成
     const purposes = ["友達作り", "飲みに行きたい", "趣味友募集", "暇つぶし"];
     const tags = ["募集中", "暇してます", "オンライン", "カフェにいます"];
+    const currentTag = tags[Math.floor(Math.random() * tags.length)];
+    const meetingPurpose = purposes[Math.floor(Math.random() * purposes.length)];
+    const bio = `こんにちは、${name}です。`;
+    const id = `demo-${gender}-${Date.now()}`;
+
+    const coords = {
+      lat: currentLocation.lat + (Math.random() - 0.5) * 0.03,
+      lng: currentLocation.lng + (Math.random() - 0.5) * 0.03,
+    };
+
+    // DBに保存（座標込み）
+    try {
+      await fetch("/api/demo-users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id, nickname: name, gender, currentTag, meetingPurpose, bio,
+          lat: coords.lat, lng: coords.lng,
+        }),
+      });
+    } catch (e) {
+      console.error("デモユーザーのDB保存に失敗:", e);
+    }
 
     const newDemo: Profile = {
-      id: `demo-${gender}-${Date.now()}`,
+      id,
       nickname: name,
-      gender: gender,
+      gender,
       age: "20代",
       prefecture: "東京都",
       city: "渋谷区",
@@ -43,49 +119,38 @@ export const useDemoUsers = (currentLocation: { lat: number; lng: number } | nul
       preferredGender: "both",
       role: "user",
       isDemo: true,
-      currentTag: tags[Math.floor(Math.random() * tags.length)],
-      meetingPurpose: purposes[Math.floor(Math.random() * purposes.length)],
-      bio: `こんにちは、${name}です。よろしくお願いします！`,
+      currentTag,
+      meetingPurpose,
+      bio,
       interests: ["旅行", "グルメ"],
-      // 管理者の位置から ±0.015度（約1.5km圏内）にランダム配置
-      coordinates: {
-        lat: currentLocation.lat + (Math.random() - 0.5) * 0.03,
-        lng: currentLocation.lng + (Math.random() - 0.5) * 0.03,
-      },
+      coordinates: coords,
       createdAt: new Date(),
     };
 
-    // 4. リストを更新
     setDemoUsers((prev) => [...prev, newDemo]);
-    console.log(`✅ デモユーザーを追加しました: ${name}`);
   };
 
-  /**
-   * 指定した性別の最新デモユーザーを1人削除する
-   * @param gender 性別 ('man' | 'woman')
-   */
   const removeDemoUser = async (gender: Gender) => {
     setDemoUsers((prev) => {
-      // 指定された性別のユーザーを抽出
       const targets = prev.filter((u) => u.gender === gender);
       if (targets.length === 0) return prev;
 
-      // 最後に追加されたユーザーのIDを取得
-      const lastId = targets[targets.length - 1].id;
-      return prev.filter((u) => u.id !== lastId);
+      const last = targets[targets.length - 1];
+
+      fetch("/api/demo-users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: last.id }),
+      }).catch((e) => console.error("デモユーザーのDB削除に失敗:", e));
+
+      return prev.filter((u) => u.id !== last.id);
     });
   };
 
-  // 管理パネルに表示するためのカウント
   const counts = {
     man: demoUsers.filter((u) => u.gender === "man").length,
     woman: demoUsers.filter((u) => u.gender === "woman").length,
   };
 
-  return {
-    demoUsers,    // マップ表示用のリスト
-    addDemoUser,   // 追加関数
-    removeDemoUser, // 削除関数
-    counts         // 現在の数
-  };
+  return { demoUsers, addDemoUser, removeDemoUser, counts };
 };
