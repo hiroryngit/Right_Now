@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Map } from "@/components/Map/Map";
 import { LoginModal } from "@/components/LoginModal/LoginModal";
@@ -9,6 +9,7 @@ import { useLocation } from "@/hooks/useLocation";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { AdminPanel } from "@/components/Admin/AdminPanel";
+import { AdminToast } from "@/components/Admin/AdminToast";
 import { useDemoUsers } from "@/hooks/useDemoUsers";
 import { Gender, Profile } from "../types/user";
 import styles from "./page.module.scss";
@@ -21,6 +22,8 @@ export default function MatchMapPage() {
   const [searchingLabel, setSearchingLabel] = useState("マッチングを探しています");
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [showAdminToast, setShowAdminToast] = useState(false);
+  const [prevUser, setPrevUser] = useState<typeof user>(undefined as any);
   const router = useRouter();
   
   
@@ -45,15 +48,6 @@ export default function MatchMapPage() {
     return () => clearInterval(interval);
   }, [status]);
 
-  // 82行目あたりに追加
-  useEffect(() => {
-    if (status !== "searching") return;
-    const timer = setTimeout(() => {
-      alert("デモユーザーとマッチングしました！");
-      setStatus("idle");
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [status]);
 
   
 
@@ -95,6 +89,19 @@ export default function MatchMapPage() {
       setShowProfileSetup(true);
     }
   }, [user, checked, profile, showLoginModal]);
+
+  // 管理者ログイン時のアニメーション（ログインした瞬間のみ）
+  useEffect(() => {
+    const justLoggedIn = !prevUser && user;
+    setPrevUser(user);
+    if (justLoggedIn && profile?.role === "admin") {
+      setShowAdminToast(true);
+    }
+  }, [user, profile, prevUser]);
+
+  const handleAdminToastDone = useCallback(() => {
+    setShowAdminToast(false);
+  }, []);
 
   const hasTag = !!profile?.currentTag;
   // return のすぐ前あたり
@@ -164,6 +171,7 @@ export default function MatchMapPage() {
       {/* ── Modals ── */}
       <LoginModal isOpen={showLoginModal} onClose={handleLoginClose} />
       <ProfileSetup isOpen={showProfileSetup} onComplete={handleProfileComplete} />
+      <AdminToast show={showAdminToast} onDone={handleAdminToastDone} />
     </div>
   );
 }

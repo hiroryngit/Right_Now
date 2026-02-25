@@ -10,11 +10,35 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const profile = await prisma.profile.findUnique({
+  const isAdmin = user.email?.includes("+admin@") ?? false;
+
+  let profile = await prisma.profile.findUnique({
     where: { id: user.id },
   });
 
-  return NextResponse.json({ profile });
+  // 管理者アカウントでプロフィールがない場合は自動作成
+  if (!profile && isAdmin) {
+    profile = await prisma.profile.create({
+      data: {
+        id: user.id,
+        nickname: "Admin",
+        gender: "man",
+        age: "20代",
+        prefecture: "東京都",
+        city: null,
+        occupation: "エンジニア",
+        interests: [],
+        preferredGender: "both",
+        currentTag: "管理者",
+        meetingPurpose: "管理",
+        bio: "管理者アカウントです",
+      },
+    });
+  }
+
+  return NextResponse.json({
+    profile: profile ? { ...profile, role: isAdmin ? "admin" : "user", isDemo: false } : null,
+  });
 }
 
 export async function POST(request: Request) {
@@ -72,5 +96,9 @@ export async function POST(request: Request) {
     update: data,
   });
 
-  return NextResponse.json({ profile });
+  const isAdmin = user.email?.includes("+admin@") ?? false;
+
+  return NextResponse.json({
+    profile: { ...profile, role: isAdmin ? "admin" : "user", isDemo: false },
+  });
 }

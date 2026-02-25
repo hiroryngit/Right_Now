@@ -9,10 +9,7 @@ interface LoginModalProps {
   onClose: () => void;
 }
 
-type Mode = "login" | "signup";
-
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
-  const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -31,20 +28,25 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
     const supabase = createClient();
 
-    if (mode === "login") {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        setError("メールアドレスまたはパスワードが正しくありません");
+    // まずログインを試みる
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (!signInError) {
+      onClose();
+      setSubmitting(false);
+      return;
+    }
+
+    // アカウントが存在しない場合は自動でサインアップ
+    if (signInError.message === "Invalid login credentials") {
+      const { error: signUpError } = await supabase.auth.signUp({ email, password });
+      if (signUpError) {
+        setError(signUpError.message);
       } else {
         onClose();
       }
     } else {
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) {
-        setError(error.message);
-      } else {
-        onClose();
-      }
+      setError("ログインに失敗しました");
     }
 
     setSubmitting(false);
@@ -61,9 +63,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   return (
     <div className={styles.overlay} onClick={handleOverlayClick}>
       <div className={styles.modal}>
-        <h2 className={styles.title}>
-          {mode === "login" ? "ログイン" : "新規登録"}
-        </h2>
+        <h2 className={styles.title}>ログイン</h2>
         <p className={styles.subtitle}>
           マッチングを開始するにはログインが必要です
         </p>
@@ -88,7 +88,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           />
           {error && <p className={styles.error}>{error}</p>}
           <button className={styles.submitBtn} type="submit" disabled={submitting}>
-            {submitting ? "..." : mode === "login" ? "ログイン" : "登録する"}
+            {submitting ? "..." : "ログイン"}
           </button>
         </form>
 
@@ -99,14 +99,6 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         <button className={styles.googleBtn} type="button" onClick={handleGoogleLogin}>
           Googleでログイン
         </button>
-
-        <p className={styles.switchMode}>
-          {mode === "login" ? (
-            <>アカウントをお持ちでない方は<button type="button" onClick={() => { setMode("signup"); setError(null); }}>新規登録</button></>
-          ) : (
-            <>アカウントをお持ちの方は<button type="button" onClick={() => { setMode("login"); setError(null); }}>ログイン</button></>
-          )}
-        </p>
 
         <button className={styles.closeButton} onClick={onClose} type="button">
           閉じる

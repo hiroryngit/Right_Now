@@ -63,6 +63,9 @@ export default function ProfilePage() {
       <div className={styles.container}>
         <header className={styles.header}>
           <h1 className={styles.title}>プロフィール</h1>
+          {profile.role === "admin" && (
+            <span className={styles.adminBadge}>ADMIN</span>
+          )}
         </header>
 
         {/* 基本情報 */}
