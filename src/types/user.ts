@@ -11,6 +11,8 @@ export interface Profile {
   prefecture: string;
   city: string | null;
   occupation: string;
+  education: string | null;
+  preferredGender: string;
   role: UserRole;      // これがないと page.tsx でエラーになります
   isDemo: boolean;     // これがないと page.tsx でエラーになります
   currentTag: string | null;
