@@ -39,6 +39,8 @@ export const useDemoUsers = (currentLocation: { lat: number; lng: number } | nul
       prefecture: "東京都",
       city: "渋谷区",
       occupation: "会社員",
+      education: null,
+      preferredGender: "both",
       role: "user",
       isDemo: true,
       currentTag: tags[Math.floor(Math.random() * tags.length)],
