@@ -29,6 +29,8 @@ export async function GET() {
         occupation: "エンジニア",
         interests: [],
         preferredGender: "both",
+        preferredAge: "気にしない",
+        preferredPurpose: "気にしない",
         currentTag: "管理者",
         meetingPurpose: "管理",
         bio: "管理者アカウントです",
