@@ -17,11 +17,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid coordinates" }, { status: 400 });
   }
 
-  await prisma.$executeRaw`
-    UPDATE "Profile"
-    SET "lastLocation" = ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography
-    WHERE id = ${user.id}
-  `;
+  await prisma.$executeRawUnsafe(
+    `UPDATE "Profile" SET "lastLocation" = ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography WHERE id = $3`,
+    lng, lat, user.id
+  );
 
   return NextResponse.json({ success: true });
 }
