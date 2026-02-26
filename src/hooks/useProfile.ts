@@ -2,25 +2,21 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { User } from "@supabase/supabase-js";
-// ✅ ここでインポートした Profile 型だけを使うようにします
-import { Profile } from "@/types/user"; 
-
-// ❌ 8行目〜21行目の「interface Profile { ... }」は、まるごと削除してください！
+import { Profile } from "@/types/user";
 
 interface UseProfileResult {
   profile: Profile | null;
   loading: boolean;
-  checked: boolean; 
-  refetch: () => void;
+  checked: boolean;
+  refetch: () => Promise<void>;
 }
 
 export function useProfile(user: User | null): UseProfileResult {
-  // useState の型指定も自動的に外部の Profile になります
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState(false);
 
-  const refetch = useCallback(() => {
+  const refetch = useCallback(async () => {
     if (!user) {
       setProfile(null);
       setLoading(false);
@@ -29,16 +25,17 @@ export function useProfile(user: User | null): UseProfileResult {
     }
 
     setLoading(true);
-    setChecked(false);
 
-    fetch("/api/profile")
-      .then((res) => res.json())
-      .then((data) => setProfile(data.profile ?? null))
-      .catch(() => setProfile(null))
-      .finally(() => {
-        setLoading(false);
-        setChecked(true);
-      });
+    try {
+      const res = await fetch("/api/profile");
+      const data = await res.json();
+      setProfile(data.profile ?? null);
+    } catch {
+      setProfile(null);
+    } finally {
+      setLoading(false);
+      setChecked(true);
+    }
   }, [user]);
 
   useEffect(() => {

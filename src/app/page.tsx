@@ -32,7 +32,7 @@ export default function MatchMapPage() {
   const { coordinates } = useLocation(true);
   const { user } = useAuth();
   
-  const { profile, checked, refetch: refetchProfile } = useProfile(user);
+  const { profile, loading: profileLoading, checked, refetch: refetchProfile } = useProfile(user);
   // src/app/page.tsx の Hook 呼び出し部分
   const demoLocation = coordinates ? { lat: coordinates.latitude, lng: coordinates.longitude } : null;
   const { demoUsers, addDemoUser, removeDemoUser, counts } = useDemoUsers(demoLocation);
@@ -80,17 +80,17 @@ export default function MatchMapPage() {
     setShowLoginModal(false);
   };
 
-  const handleProfileComplete = () => {
-    refetchProfile();
+  const handleProfileComplete = async () => {
+    await refetchProfile();
     setShowProfileSetup(false);
   };
 
   // ログイン後、DB問い合わせ完了してプロフィールが無い場合のみ登録画面を出す
   useEffect(() => {
-    if (user && checked && !profile && !showLoginModal) {
+    if (user && checked && !profileLoading && !profile && !showLoginModal) {
       setShowProfileSetup(true);
     }
-  }, [user, checked, profile, showLoginModal]);
+  }, [user, checked, profileLoading, profile, showLoginModal]);
 
   // 管理者ログイン時のアニメーション（ログインした瞬間のみ）
   useEffect(() => {
