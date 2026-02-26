@@ -13,11 +13,9 @@ async function getAdminUser() {
 
 // デモユーザー一覧取得（誰でも取得可能）
 export async function GET() {
-  const rows = await prisma.$queryRawUnsafe<
-    { id: string; nickname: string; gender: string; lat: number; lng: number }[]
-  >(
+  const rows = await prisma.$queryRawUnsafe(
     `SELECT id, nickname, gender, ST_Y("lastLocation"::geometry) AS lat, ST_X("lastLocation"::geometry) AS lng FROM "Profile" WHERE "isDemo" = true AND "lastLocation" IS NOT NULL`
-  );
+  ) as { id: string; nickname: string; gender: string; lat: number; lng: number }[];
 
   return NextResponse.json({ users: rows });
 }
