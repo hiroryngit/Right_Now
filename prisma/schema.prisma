@@ -4,8 +4,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
   extensions = [postgis]
 }
 
@@ -30,7 +31,8 @@ model Profile {
   interests       String[]
   preferredGender  String
   preferredAge     String?
-  preferredPurpose String?
+  preferredPurpose  String?
+  preferredDistance  Int?
   isDemo           Boolean  @default(false)
   isOnline        Boolean  @default(false)
   currentTag      String?

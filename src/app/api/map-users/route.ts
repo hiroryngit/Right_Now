@@ -9,6 +9,7 @@ export async function GET() {
       ST_X("lastLocation"::geometry) AS lng
     FROM "Profile"
     WHERE "lastLocation" IS NOT NULL
+      AND "isOnline" = true
   `;
 
   return NextResponse.json({ users: rows });

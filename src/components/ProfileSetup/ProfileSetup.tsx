@@ -37,6 +37,7 @@ export function ProfileSetup({ isOpen, onComplete }: ProfileSetupProps) {
   const [preferredGender, setPreferredGender] = useState("");
   const [preferredAge, setPreferredAge] = useState("");
   const [preferredPurpose, setPreferredPurpose] = useState("");
+  const [preferredDistance, setPreferredDistance] = useState("");
 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -52,7 +53,10 @@ export function ProfileSetup({ isOpen, onComplete }: ProfileSetupProps) {
     currentTag !== "" &&
     preferredGender !== "" &&
     preferredAge !== "" &&
-    preferredPurpose !== "";
+    preferredPurpose !== "" &&
+    preferredDistance !== "" &&
+    Number.isInteger(Number(preferredDistance)) &&
+    Number(preferredDistance) >= 1;
 
   const toggleInterest = (interest: string) => {
     setInterests((prev) =>
@@ -92,6 +96,7 @@ export function ProfileSetup({ isOpen, onComplete }: ProfileSetupProps) {
           preferredGender,
           preferredAge,
           preferredPurpose,
+          preferredDistance: Number(preferredDistance),
         }),
       });
 
@@ -290,6 +295,18 @@ export function ProfileSetup({ isOpen, onComplete }: ProfileSetupProps) {
               <option value="">選択してください</option>
               {PURPOSE_PREFERENCES.map((o) => <option key={o} value={o}>{o}</option>)}
             </select>
+
+            <label className={styles.label}>
+              希望距離（km） <span className={styles.required}>*</span>
+            </label>
+            <input
+              className={styles.input}
+              type="number"
+              placeholder="例: 10"
+              value={preferredDistance}
+              onChange={(e) => setPreferredDistance(e.target.value)}
+              min={1}
+            />
           </div>
 
           {error && <p className={styles.error}>{error}</p>}

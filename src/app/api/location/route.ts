@@ -19,7 +19,8 @@ export async function POST(request: Request) {
 
   await prisma.$executeRaw`
     UPDATE "Profile"
-    SET "lastLocation" = ST_SetSRID(ST_MakePoint(${lng}::float, ${lat}::float), 4326)::geography
+    SET "lastLocation" = ST_SetSRID(ST_MakePoint(${lng}::float, ${lat}::float), 4326)::geography,
+        "isOnline" = true
     WHERE id = ${user.id}
   `;
 

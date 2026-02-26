@@ -32,6 +32,7 @@ export async function GET() {
           preferredGender: "both",
           preferredAge: "気にしない",
           preferredPurpose: "気にしない",
+          preferredDistance: 50,
           currentTag: "管理者",
           meetingPurpose: "管理",
           bio: "管理者アカウントです",
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { nickname, gender, age, prefecture, city, occupation, education, meetingPurpose, currentTag, bio, interests, preferredGender, preferredAge, preferredPurpose } = body;
+  const { nickname, gender, age, prefecture, city, occupation, education, meetingPurpose, currentTag, bio, interests, preferredGender, preferredAge, preferredPurpose, preferredDistance } = body;
 
   // Required field validation
   if (!nickname || typeof nickname !== "string" || nickname.trim().length === 0) {
@@ -86,6 +87,10 @@ export async function POST(request: Request) {
   if (!preferredPurpose) {
     return NextResponse.json({ error: "出会う目的の希望は必須です" }, { status: 400 });
   }
+  const parsedDistance = Number(preferredDistance);
+  if (preferredDistance == null || !Number.isInteger(parsedDistance) || parsedDistance < 1) {
+    return NextResponse.json({ error: "希望距離は1以上の整数で入力してください" }, { status: 400 });
+  }
 
   const data = {
     nickname: nickname.trim(),
@@ -102,6 +107,7 @@ export async function POST(request: Request) {
     preferredGender,
     preferredAge,
     preferredPurpose,
+    preferredDistance: parsedDistance,
   };
 
   const profile = await prisma.profile.upsert({

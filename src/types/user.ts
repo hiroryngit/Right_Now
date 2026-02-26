@@ -15,6 +15,7 @@ export interface Profile {
   preferredGender: string;
   preferredAge: string | null;
   preferredPurpose: string | null;
+  preferredDistance: number | null;
   role: UserRole;      // これがないと page.tsx でエラーになります
   isDemo: boolean;     // これがないと page.tsx でエラーになります
   currentTag: string | null;

@@ -32,6 +32,7 @@ type EditableField =
   | "preferredGender"
   | "preferredAge"
   | "preferredPurpose"
+  | "preferredDistance"
   | null;
 
 export default function ProfilePage() {
@@ -51,12 +52,14 @@ export default function ProfilePage() {
   const [editPreferredGender, setEditPreferredGender] = useState("");
   const [editPreferredAge, setEditPreferredAge] = useState("");
   const [editPreferredPurpose, setEditPreferredPurpose] = useState("");
+  const [editPreferredDistance, setEditPreferredDistance] = useState("");
 
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading, checked, refetch } = useProfile(user);
 
   const handleLogout = async () => {
+    await fetch("/api/logout", { method: "POST" });
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/");
@@ -96,6 +99,9 @@ export default function ProfilePage() {
       case "preferredPurpose":
         setEditPreferredPurpose(profile.preferredPurpose ?? "");
         break;
+      case "preferredDistance":
+        setEditPreferredDistance(profile.preferredDistance != null ? String(profile.preferredDistance) : "");
+        break;
     }
     setEditingField(field);
   };
@@ -121,6 +127,7 @@ export default function ProfilePage() {
       preferredGender: profile.preferredGender,
       preferredAge: profile.preferredAge,
       preferredPurpose: profile.preferredPurpose,
+      preferredDistance: profile.preferredDistance,
     };
 
     switch (editingField) {
@@ -154,6 +161,9 @@ export default function ProfilePage() {
         break;
       case "preferredPurpose":
         updated.preferredPurpose = editPreferredPurpose || null;
+        break;
+      case "preferredDistance":
+        updated.preferredDistance = editPreferredDistance ? Number(editPreferredDistance) : null;
         break;
     }
 
@@ -510,6 +520,32 @@ export default function ProfilePage() {
               <span className={styles.fieldValueWithEdit}>
                 {renderValue(profile.preferredPurpose)}
                 {renderEditBtn("preferredPurpose")}
+              </span>
+            )}
+          </div>
+
+          {/* 希望距離 — 編集可能 */}
+          <div className={styles.field}>
+            <span className={styles.fieldLabel}>希望距離</span>
+            {editingField === "preferredDistance" ? (
+              <div className={styles.editField}>
+                <input
+                  type="number"
+                  value={editPreferredDistance}
+                  onChange={(e) => setEditPreferredDistance(e.target.value)}
+                  min={1}
+                  placeholder="km"
+                />
+                {renderEditActions()}
+              </div>
+            ) : (
+              <span className={styles.fieldValueWithEdit}>
+                {profile.preferredDistance != null ? (
+                  <span className={styles.fieldValue}>{profile.preferredDistance}km</span>
+                ) : (
+                  <span className={styles.fieldUnset}>未設定</span>
+                )}
+                {renderEditBtn("preferredDistance")}
               </span>
             )}
           </div>
