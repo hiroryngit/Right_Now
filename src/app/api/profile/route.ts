@@ -18,24 +18,28 @@ export async function GET() {
 
   // 管理者アカウントでプロフィールがない場合は自動作成
   if (!profile && isAdmin) {
-    profile = await prisma.profile.create({
-      data: {
-        id: user.id,
-        nickname: "Admin",
-        gender: "man",
-        age: "20代",
-        prefecture: "東京都",
-        city: null,
-        occupation: "エンジニア",
-        interests: [],
-        preferredGender: "both",
-        preferredAge: "気にしない",
-        preferredPurpose: "気にしない",
-        currentTag: "管理者",
-        meetingPurpose: "管理",
-        bio: "管理者アカウントです",
-      },
-    });
+    try {
+      profile = await prisma.profile.create({
+        data: {
+          id: user.id,
+          nickname: "Admin",
+          gender: "man",
+          age: "20代",
+          prefecture: "東京都",
+          city: null,
+          occupation: "エンジニア",
+          interests: [],
+          preferredGender: "both",
+          preferredAge: "気にしない",
+          preferredPurpose: "気にしない",
+          currentTag: "管理者",
+          meetingPurpose: "管理",
+          bio: "管理者アカウントです",
+        },
+      });
+    } catch (e) {
+      console.error("管理者プロフィール自動作成に失敗:", e);
+    }
   }
 
   return NextResponse.json({
