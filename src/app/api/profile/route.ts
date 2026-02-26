@@ -50,7 +50,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { nickname, gender, age, prefecture, city, occupation, education, meetingPurpose, currentTag, bio, interests, preferredGender } = body;
+  const { nickname, gender, age, prefecture, city, occupation, education, meetingPurpose, currentTag, bio, interests, preferredGender, preferredAge, preferredPurpose } = body;
 
   // Required field validation
   if (!nickname || typeof nickname !== "string" || nickname.trim().length === 0) {
@@ -74,6 +74,12 @@ export async function POST(request: Request) {
   if (!preferredGender) {
     return NextResponse.json({ error: "相手の性別は必須です" }, { status: 400 });
   }
+  if (!preferredAge) {
+    return NextResponse.json({ error: "希望年齢は必須です" }, { status: 400 });
+  }
+  if (!preferredPurpose) {
+    return NextResponse.json({ error: "出会う目的の希望は必須です" }, { status: 400 });
+  }
 
   const data = {
     nickname: nickname.trim(),
@@ -88,6 +94,8 @@ export async function POST(request: Request) {
     bio: bio || null,
     interests: Array.isArray(interests) ? interests : [],
     preferredGender,
+    preferredAge,
+    preferredPurpose,
   };
 
   const profile = await prisma.profile.upsert({

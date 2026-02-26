@@ -12,6 +12,8 @@ import {
   MATCHING_TAGS,
   INTERESTS,
   GENDER_PREFERENCES,
+  AGE_PREFERENCES,
+  PURPOSE_PREFERENCES,
 } from "@/constants/profile";
 import styles from "./ProfileSetup.module.scss";
 
@@ -33,6 +35,8 @@ export function ProfileSetup({ isOpen, onComplete }: ProfileSetupProps) {
   const [currentTag, setCurrentTag] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
   const [preferredGender, setPreferredGender] = useState("");
+  const [preferredAge, setPreferredAge] = useState("");
+  const [preferredPurpose, setPreferredPurpose] = useState("");
 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -46,7 +50,9 @@ export function ProfileSetup({ isOpen, onComplete }: ProfileSetupProps) {
     prefecture !== "" &&
     occupation !== "" &&
     currentTag !== "" &&
-    preferredGender !== "";
+    preferredGender !== "" &&
+    preferredAge !== "" &&
+    preferredPurpose !== "";
 
   const toggleInterest = (interest: string) => {
     setInterests((prev) =>
@@ -84,6 +90,8 @@ export function ProfileSetup({ isOpen, onComplete }: ProfileSetupProps) {
           currentTag,
           interests,
           preferredGender,
+          preferredAge,
+          preferredPurpose,
         }),
       });
 
@@ -266,6 +274,22 @@ export function ProfileSetup({ isOpen, onComplete }: ProfileSetupProps) {
                 </label>
               ))}
             </div>
+
+            <label className={styles.label}>
+              希望年齢 <span className={styles.required}>*</span>
+            </label>
+            <select className={styles.select} value={preferredAge} onChange={(e) => setPreferredAge(e.target.value)}>
+              <option value="">選択してください</option>
+              {AGE_PREFERENCES.map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
+
+            <label className={styles.label}>
+              出会う目的の希望 <span className={styles.required}>*</span>
+            </label>
+            <select className={styles.select} value={preferredPurpose} onChange={(e) => setPreferredPurpose(e.target.value)}>
+              <option value="">選択してください</option>
+              {PURPOSE_PREFERENCES.map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
           </div>
 
           {error && <p className={styles.error}>{error}</p>}

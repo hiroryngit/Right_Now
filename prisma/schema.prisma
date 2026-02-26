@@ -28,8 +28,10 @@ model Profile {
   meetingPurpose  String?
   bio             String?
   interests       String[]
-  preferredGender String
-  isDemo          Boolean  @default(false)
+  preferredGender  String
+  preferredAge     String?
+  preferredPurpose String?
+  isDemo           Boolean  @default(false)
   isOnline        Boolean  @default(false)
   currentTag      String?
   lastLocation    Unsupported("geography(Point, 4326)")?

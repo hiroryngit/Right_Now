@@ -78,18 +78,176 @@
 .field {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding: $spacing-xs 0;
+  gap: $spacing-sm;
 }
 
 .fieldLabel {
   font-size: 13px;
   color: $color-text-muted;
+  white-space: nowrap;
+  padding-top: 2px;
 }
 
 .fieldValue {
   font-size: 14px;
   font-weight: 500;
+}
+
+.fieldUnset {
+  font-size: 13px;
+  color: $color-text-muted;
+  font-style: italic;
+}
+
+.fieldValueWithEdit {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.editBtn {
+  background: none;
+  border: none;
+  color: $color-text-muted;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: $radius-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background 0.2s;
+  flex-shrink: 0;
+
+  &:hover {
+    color: $color-primary;
+    background: rgba($color-primary, 0.1);
+  }
+}
+
+.editField {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  width: 100%;
+
+  select,
+  input {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: $radius-sm;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: $color-background;
+    color: $color-text;
+    font-size: 13px;
+    outline: none;
+
+    option {
+      background: $color-background;
+      color: $color-text;
+    }
+
+    &:focus {
+      border-color: $color-primary;
+    }
+  }
+}
+
+.editTextarea {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: $radius-sm;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #000;
+  color: $color-text;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+
+  &:focus {
+    border-color: $color-primary;
+  }
+}
+
+.editActions {
+  display: flex;
+  gap: $spacing-sm;
+  justify-content: flex-end;
+}
+
+.saveBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: $radius-sm;
+  background: $color-primary;
+  border: none;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: $color-primary-dark;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.cancelBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: $radius-sm;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: $color-text-muted;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    color: $color-text;
+  }
+}
+
+.chipGridEdit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chipEdit {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: $color-text-muted;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: rgba($color-primary, 0.5);
+    color: $color-text;
+  }
+}
+
+.chipEditActive {
+  background: rgba($color-primary, 0.15);
+  border-color: $color-primary;
+  color: $color-primary;
 }
 
 .tag {
