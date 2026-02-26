@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 import { Gender, Profile } from "@/types/user";
 
-interface DemoUserCoords {
+interface MapUserCoords {
   id: string;
   nickname: string;
   gender: string;
+  is_demo: boolean;
   lat: number;
   lng: number;
 }
@@ -16,15 +17,15 @@ export const useDemoUsers = (currentLocation: { lat: number; lng: number } | nul
   const counterRef = useRef<Record<Gender, number>>({ man: 0, woman: 0 });
   const loadedRef = useRef(false);
 
-  // DBからデモユーザーを読み込む
+  // 位置情報を持つ全ユーザーをDBから読み込む
   useEffect(() => {
     if (loadedRef.current) return;
     loadedRef.current = true;
 
-    fetch("/api/demo-users")
+    fetch("/api/map-users")
       .then((res) => res.json())
       .then((data) => {
-        const users: DemoUserCoords[] = data.users || [];
+        const users: MapUserCoords[] = data.users || [];
         const profiles: Profile[] = users.map((u) => ({
           id: u.id,
           nickname: u.nickname,
@@ -36,17 +37,19 @@ export const useDemoUsers = (currentLocation: { lat: number; lng: number } | nul
           education: null,
           preferredGender: "both",
           role: "user" as const,
-          isDemo: true,
+          isDemo: u.is_demo,
           currentTag: null,
           meetingPurpose: null,
           bio: null,
+          rating: 5.0,
           interests: [],
           coordinates: { lat: u.lat, lng: u.lng },
           createdAt: new Date(),
         }));
 
-        // カウンターを復元
+        // デモユーザーのカウンターを復元
         for (const p of profiles) {
+          if (!p.isDemo) continue;
           if (p.gender === "man") counterRef.current.man++;
           if (p.gender === "woman") counterRef.current.woman++;
         }
@@ -56,26 +59,41 @@ export const useDemoUsers = (currentLocation: { lat: number; lng: number } | nul
       .catch(() => {});
   }, []);
 
-  // ランダムウォーク
+  // ログインユーザーの位置情報をDBに送信
+  useEffect(() => {
+    if (!currentLocation) return;
+
+    fetch("/api/location", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lat: currentLocation.lat, lng: currentLocation.lng }),
+    }).catch(() => {});
+  }, [currentLocation]);
+
+  // ランダムウォーク（デモユーザーのみ）
   useEffect(() => {
     if (demoUsers.length === 0) return;
 
     const interval = setInterval(() => {
       setDemoUsers((prev) =>
-        prev.map((u) => ({
-          ...u,
-          coordinates: {
-            lat: u.coordinates.lat + (Math.random() - 0.5) * 0.001,
-            lng: u.coordinates.lng + (Math.random() - 0.5) * 0.001,
-          },
-        }))
+        prev.map((u) =>
+          u.isDemo
+            ? {
+                ...u,
+                coordinates: {
+                  lat: u.coordinates.lat + (Math.random() - 0.5) * 0.001,
+                  lng: u.coordinates.lng + (Math.random() - 0.5) * 0.001,
+                },
+              }
+            : u
+        )
       );
     }, 2000);
 
     return () => clearInterval(interval);
   }, [demoUsers.length]);
 
-  const addDemoUser = async (gender: Gender) => {
+  const addDemoUser = (gender: Gender) => {
     if (!currentLocation) return;
 
     counterRef.current[gender] += 1;
@@ -93,20 +111,6 @@ export const useDemoUsers = (currentLocation: { lat: number; lng: number } | nul
       lng: currentLocation.lng + (Math.random() - 0.5) * 0.03,
     };
 
-    // DBに保存（座標込み）
-    try {
-      await fetch("/api/demo-users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id, nickname: name, gender, currentTag, meetingPurpose, bio,
-          lat: coords.lat, lng: coords.lng,
-        }),
-      });
-    } catch (e) {
-      console.error("デモユーザーのDB保存に失敗:", e);
-    }
-
     const newDemo: Profile = {
       id,
       nickname: name,
@@ -123,11 +127,27 @@ export const useDemoUsers = (currentLocation: { lat: number; lng: number } | nul
       meetingPurpose,
       bio,
       interests: ["旅行", "グルメ"],
+      rating: 5.0,
       coordinates: coords,
       createdAt: new Date(),
     };
 
+    // 楽観的更新: 先にUIに反映
     setDemoUsers((prev) => [...prev, newDemo]);
+
+    // DB保存はバックグラウンドで実行
+    fetch("/api/demo-users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id, nickname: name, gender, currentTag, meetingPurpose, bio,
+        lat: coords.lat, lng: coords.lng,
+      }),
+    }).catch((e) => {
+      console.error("デモユーザーのDB保存に失敗:", e);
+      // 失敗時はUIからも除去
+      setDemoUsers((prev) => prev.filter((u) => u.id !== id));
+    });
   };
 
   const removeDemoUser = async (gender: Gender) => {
@@ -148,8 +168,8 @@ export const useDemoUsers = (currentLocation: { lat: number; lng: number } | nul
   };
 
   const counts = {
-    man: demoUsers.filter((u) => u.gender === "man").length,
-    woman: demoUsers.filter((u) => u.gender === "woman").length,
+    man: demoUsers.filter((u) => u.isDemo && u.gender === "man").length,
+    woman: demoUsers.filter((u) => u.isDemo && u.gender === "woman").length,
   };
 
   return { demoUsers, addDemoUser, removeDemoUser, counts };

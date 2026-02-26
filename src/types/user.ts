@@ -18,6 +18,7 @@ export interface Profile {
   currentTag: string | null;
   meetingPurpose: string | null;
   bio: string | null;
+  rating: number;
   interests: string[];
   coordinates: {
     lat: number;

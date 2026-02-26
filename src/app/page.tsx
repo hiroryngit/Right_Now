@@ -11,6 +11,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { AdminPanel } from "@/components/Admin/AdminPanel";
 import { AdminToast } from "@/components/Admin/AdminToast";
 import { useDemoUsers } from "@/hooks/useDemoUsers";
+import { Star } from "lucide-react";
 import { Gender, Profile } from "../types/user";
 import styles from "./page.module.scss";
 
@@ -130,6 +131,23 @@ export default function MatchMapPage() {
         <button className={styles.homeBtn} aria-label="プロフィール" onClick={() => router.push("/profile")}>
           <span className={styles.homeBtnIcon}>⌂</span>
         </button>
+        {profile && (
+          <div className={styles.starRating}>
+            <span className={styles.ratingValue}>{profile.rating.toFixed(1)}</span>
+            <div className={styles.stars}>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Star
+                  key={i}
+                  size={14}
+                  className={i <= Math.round(profile.rating) ? styles.starFilled : styles.starEmpty}
+                  fill={i <= Math.round(profile.rating) ? "currentColor" : "none"}
+                  strokeWidth={i <= Math.round(profile.rating) ? 0 : 1.5}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        <div className={styles.topBarSpacer} />
       </header>
 
       {/* ── Map area ── */}
