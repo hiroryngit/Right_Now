@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 
@@ -13,9 +14,13 @@ async function getAdminUser() {
 
 // デモユーザー一覧取得（誰でも取得可能）
 export async function GET() {
-  const rows = await prisma.$queryRawUnsafe(
-    `SELECT id, nickname, gender, ST_Y("lastLocation"::geometry) AS lat, ST_X("lastLocation"::geometry) AS lng FROM "Profile" WHERE "isDemo" = true AND "lastLocation" IS NOT NULL`
-  ) as { id: string; nickname: string; gender: string; lat: number; lng: number }[];
+  const rows: { id: string; nickname: string; gender: string; lat: number; lng: number }[] = await prisma.$queryRaw`
+    SELECT id, nickname, gender,
+      ST_Y("lastLocation"::geometry) AS lat,
+      ST_X("lastLocation"::geometry) AS lng
+    FROM "Profile"
+    WHERE "isDemo" = true AND "lastLocation" IS NOT NULL
+  `;
 
   return NextResponse.json({ users: rows });
 }
@@ -51,10 +56,11 @@ export async function POST(request: Request) {
   });
 
   // 座標を保存
-  await prisma.$executeRawUnsafe(
-    `UPDATE "Profile" SET "lastLocation" = ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography WHERE id = $3`,
-    lng, lat, id
-  );
+  await prisma.$executeRaw`
+    UPDATE "Profile"
+    SET "lastLocation" = ST_SetSRID(ST_MakePoint(${lng}::float, ${lat}::float), 4326)::geography
+    WHERE id = ${id}
+  `;
 
   return NextResponse.json({ success: true });
 }
