@@ -36,32 +36,33 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { id, nickname, gender, currentTag, meetingPurpose, bio, lat, lng } = body;
 
-  // プロフィール作成
-  await prisma.profile.create({
-    data: {
-      id,
-      nickname,
-      gender,
-      age: "20代",
-      prefecture: "東京都",
-      city: "渋谷区",
-      occupation: "会社員",
-      interests: ["旅行", "グルメ"],
-      preferredGender: "both",
-      isDemo: true,
-      isOnline: true,
-      currentTag: currentTag || null,
-      meetingPurpose: meetingPurpose || null,
-      bio: bio || null,
-    },
-  });
+  // プロフィール作成＋座標を1トランザクションで保存
+  await prisma.$transaction(async (tx) => {
+    await tx.profile.create({
+      data: {
+        id,
+        nickname,
+        gender,
+        age: "20代",
+        prefecture: "東京都",
+        city: "渋谷区",
+        occupation: "会社員",
+        interests: ["旅行", "グルメ"],
+        preferredGender: "both",
+        isDemo: true,
+        isOnline: true,
+        currentTag: currentTag || null,
+        meetingPurpose: meetingPurpose || null,
+        bio: bio || null,
+      },
+    });
 
-  // 座標を保存
-  await prisma.$executeRaw`
-    UPDATE "Profile"
-    SET "lastLocation" = ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography
-    WHERE id = ${id}
-  `;
+    await tx.$executeRaw`
+      UPDATE "Profile"
+      SET "lastLocation" = ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography
+      WHERE id = ${id}
+    `;
+  });
 
   return NextResponse.json({ success: true });
 }

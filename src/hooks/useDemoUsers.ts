@@ -95,7 +95,7 @@ export const useDemoUsers = (currentLocation: { lat: number; lng: number } | nul
     return () => clearInterval(interval);
   }, [demoUsers.length]);
 
-  const addDemoUser = (gender: Gender) => {
+  const addDemoUser = async (gender: Gender) => {
     if (!currentLocation) return;
 
     counterRef.current[gender] += 1;
@@ -139,36 +139,45 @@ export const useDemoUsers = (currentLocation: { lat: number; lng: number } | nul
     // 楽観的更新: 先にUIに反映
     setDemoUsers((prev) => [...prev, newDemo]);
 
-    // DB保存はバックグラウンドで実行
-    fetch("/api/demo-users", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id, nickname: name, gender, currentTag, meetingPurpose, bio,
-        lat: coords.lat, lng: coords.lng,
-      }),
-    }).catch((e) => {
+    // DB保存を待ち、失敗時はUIとカウンターを戻す
+    try {
+      const res = await fetch("/api/demo-users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id, nickname: name, gender, currentTag, meetingPurpose, bio,
+          lat: coords.lat, lng: coords.lng,
+        }),
+      });
+      if (!res.ok) throw new Error("DB保存失敗");
+    } catch (e) {
       console.error("デモユーザーのDB保存に失敗:", e);
-      // 失敗時はUIからも除去
       setDemoUsers((prev) => prev.filter((u) => u.id !== id));
-    });
+      counterRef.current[gender] -= 1;
+    }
   };
 
   const removeDemoUser = async (gender: Gender) => {
-    setDemoUsers((prev) => {
-      const targets = prev.filter((u) => u.gender === gender);
-      if (targets.length === 0) return prev;
+    const targets = demoUsers.filter((u) => u.isDemo && u.gender === gender);
+    if (targets.length === 0) return;
 
-      const last = targets[targets.length - 1];
+    const last = targets[targets.length - 1];
 
-      fetch("/api/demo-users", {
+    // 楽観的更新
+    setDemoUsers((prev) => prev.filter((u) => u.id !== last.id));
+
+    try {
+      const res = await fetch("/api/demo-users", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: last.id }),
-      }).catch((e) => console.error("デモユーザーのDB削除に失敗:", e));
-
-      return prev.filter((u) => u.id !== last.id);
-    });
+      });
+      if (!res.ok) throw new Error("DB削除失敗");
+    } catch (e) {
+      console.error("デモユーザーのDB削除に失敗:", e);
+      // 失敗時はUIに戻す
+      setDemoUsers((prev) => [...prev, last]);
+    }
   };
 
   const counts = {
