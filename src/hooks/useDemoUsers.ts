@@ -102,10 +102,29 @@ export const useDemoUsers = (currentLocation: { lat: number; lng: number } | nul
     counterRef.current[gender] += 1;
     const name = `${gender}${counterRef.current[gender]}`;
 
-    const purposes = ["友達作り", "飲みに行きたい", "趣味友募集", "暇つぶし"];
+    const purposes = ["友達探し", "暇つぶし", "趣味仲間", "飲み友達", "ビジネス", "恋愛"];
     const tags = ["募集中", "暇してます", "オンライン", "カフェにいます"];
-    const currentTag = tags[Math.floor(Math.random() * tags.length)];
-    const meetingPurpose = purposes[Math.floor(Math.random() * purposes.length)];
+    const ages = ["18~19", "20代前半", "20代後半", "30代前半", "30代後半", "40代前半", "40代後半"];
+    const genderPrefs = ["同性のみ", "異性のみ", "気にしない"];
+    const agePrefs = ["気にしない", "18~19", "20代前半", "20代後半", "30代前半", "30代後半", "40代前半"];
+    const purposePrefs = ["気にしない", "友達探し", "暇つぶし", "趣味仲間", "飲み友達", "恋愛"];
+    const distanceOptions = [1, 3, 5, 10, null];
+    const allInterests = ["スポーツ", "音楽", "映画", "読書", "ゲーム", "旅行", "グルメ", "テクノロジー", "アウトドア", "料理", "フィットネス", "カフェ巡り"];
+
+    const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
+    const pickN = <T,>(arr: T[], n: number): T[] => {
+      const shuffled = [...arr].sort(() => Math.random() - 0.5);
+      return shuffled.slice(0, n);
+    };
+
+    const currentTag = pick(tags);
+    const meetingPurpose = pick(purposes);
+    const age = pick(ages);
+    const preferredGender = pick(genderPrefs);
+    const preferredAge = pick(agePrefs);
+    const preferredPurpose = pick(purposePrefs);
+    const preferredDistance = pick(distanceOptions);
+    const interests = pickN(allInterests, 2 + Math.floor(Math.random() * 4));
     const bio = `こんにちは、${name}です。`;
     const id = `demo-${gender}-${Date.now()}`;
 
@@ -118,21 +137,21 @@ export const useDemoUsers = (currentLocation: { lat: number; lng: number } | nul
       id,
       nickname: name,
       gender,
-      age: "20代",
+      age,
       prefecture: "東京都",
       city: "渋谷区",
       occupation: "会社員",
       education: null,
-      preferredGender: "both",
-      preferredAge: null,
-      preferredPurpose: null,
-      preferredDistance: null,
+      preferredGender,
+      preferredAge,
+      preferredPurpose,
+      preferredDistance,
       role: "user",
       isDemo: true,
       currentTag,
       meetingPurpose,
       bio,
-      interests: ["旅行", "グルメ"],
+      interests,
       rating: 5.0,
       coordinates: coords,
       createdAt: new Date(),
@@ -147,7 +166,8 @@ export const useDemoUsers = (currentLocation: { lat: number; lng: number } | nul
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          id, nickname: name, gender, currentTag, meetingPurpose, bio,
+          id, nickname: name, gender, age, currentTag, meetingPurpose, bio,
+          preferredGender, preferredAge, preferredPurpose, preferredDistance, interests,
           lat: coords.lat, lng: coords.lng,
         }),
       });

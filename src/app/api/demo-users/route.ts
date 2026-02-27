@@ -32,7 +32,10 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { id, nickname, gender, currentTag, meetingPurpose, bio, lat, lng } = body;
+  const {
+    id, nickname, gender, currentTag, meetingPurpose, bio, lat, lng,
+    age, preferredGender, preferredAge, preferredPurpose, preferredDistance, interests,
+  } = body;
 
   // プロフィール作成
   await prisma.profile.create({
@@ -40,12 +43,15 @@ export async function POST(request: Request) {
       id,
       nickname,
       gender,
-      age: "20代",
+      age: age || "20代",
       prefecture: "東京都",
       city: "渋谷区",
       occupation: "会社員",
-      interests: ["旅行", "グルメ"],
-      preferredGender: "both",
+      interests: interests || ["旅行", "グルメ"],
+      preferredGender: preferredGender || "気にしない",
+      preferredAge: preferredAge || null,
+      preferredPurpose: preferredPurpose || null,
+      preferredDistance: preferredDistance ?? null,
       isDemo: true,
       isOnline: true,
       currentTag: currentTag || null,
