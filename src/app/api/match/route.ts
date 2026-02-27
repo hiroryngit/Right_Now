@@ -260,6 +260,16 @@ async function fetchOnlineUsers(): Promise<UserRow[]> {
   `;
 }
 
+// match IDから決定論的な擬似乱数を生成
+function hashCode(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
 // GET: 現在のアクティブなマッチ状態を取得
 export async function GET() {
   const supabase = await createClient();
@@ -287,8 +297,42 @@ export async function GET() {
     const otherId = pending.requesterId === user.id ? pending.receiverId : pending.requesterId;
     const other = await prisma.profile.findUnique({
       where: { id: otherId },
-      select: { id: true, nickname: true, gender: true, age: true, isDemo: true },
+      select: {
+        id: true, nickname: true, gender: true, age: true, isDemo: true,
+        prefecture: true, occupation: true, meetingPurpose: true,
+        currentTag: true, bio: true, interests: true,
+      },
     });
+
+    // デモユーザーがreceiverの場合、ランダムなタイミングで自動応答
+    if (other?.isDemo && pending.requesterId === user.id) {
+      const startTime = pending.expiresAt.getTime() - 30 * 1000;
+      const elapsed = (Date.now() - startTime) / 1000;
+      // match IDから決定論的にdelay(5〜25秒)と承認/拒否を決める
+      const delay = 5 + (hashCode(pending.id) % 21);
+      const willAccept = (hashCode(pending.id + "decision") % 100) < 70;
+
+      if (elapsed >= delay) {
+        const newStatus = willAccept ? "ACCEPTED" : "REJECTED";
+        await prisma.match.update({
+          where: { id: pending.id },
+          data: { status: newStatus },
+        });
+        if (willAccept) {
+          return NextResponse.json({
+            match: {
+              id: pending.id,
+              status: "ACCEPTED",
+              role: "requester",
+              expiresAt: pending.expiresAt.toISOString(),
+              other,
+            },
+          });
+        } else {
+          return NextResponse.json({ match: null });
+        }
+      }
+    }
 
     return NextResponse.json({
       match: {
@@ -313,7 +357,11 @@ export async function GET() {
     const otherId = accepted.requesterId === user.id ? accepted.receiverId : accepted.requesterId;
     const other = await prisma.profile.findUnique({
       where: { id: otherId },
-      select: { id: true, nickname: true, gender: true, age: true, isDemo: true },
+      select: {
+        id: true, nickname: true, gender: true, age: true, isDemo: true,
+        prefecture: true, occupation: true, meetingPurpose: true,
+        currentTag: true, bio: true, interests: true,
+      },
     });
 
     return NextResponse.json({
@@ -408,19 +456,22 @@ export async function POST() {
     },
   });
 
+  const pickedProfile = await prisma.profile.findUnique({
+    where: { id: picked.id },
+    select: {
+      id: true, nickname: true, gender: true, age: true, isDemo: true,
+      prefecture: true, occupation: true, meetingPurpose: true,
+      currentTag: true, bio: true, interests: true,
+    },
+  });
+
   return NextResponse.json({
     match: {
       id: match.id,
       status: match.status,
       role: "requester",
       expiresAt: match.expiresAt.toISOString(),
-      other: {
-        id: picked.id,
-        nickname: picked.nickname,
-        gender: picked.gender,
-        age: picked.age,
-        isDemo: picked.is_demo,
-      },
+      other: pickedProfile,
     },
   });
 }

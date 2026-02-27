@@ -16,20 +16,28 @@ import { Star } from "lucide-react";
 import { Gender } from "../types/user";
 import styles from "./page.module.scss";
 
-type AppStatus = "idle" | "searching" | "matched" | "accepted";
+type AppStatus = "idle" | "searching" | "matched" | "waiting" | "accepted";
+
+interface MatchOther {
+  id: string;
+  nickname: string;
+  gender: string;
+  age: string;
+  isDemo: boolean;
+  prefecture?: string;
+  occupation?: string;
+  meetingPurpose?: string | null;
+  currentTag?: string | null;
+  bio?: string | null;
+  interests?: string[];
+}
 
 interface MatchData {
   id: string;
   status: string;
   role: "requester" | "receiver";
   expiresAt: string;
-  other: {
-    id: string;
-    nickname: string;
-    gender: string;
-    age: string;
-    isDemo: boolean;
-  };
+  other: MatchOther;
 }
 
 export default function MatchMapPage() {
@@ -112,9 +120,9 @@ export default function MatchMapPage() {
     };
   }, [status]);
 
-  // matched中: requesterの場合、相手の応答をポーリング
+  // waiting中: 相手の応答をポーリング
   useEffect(() => {
-    if (status !== "matched" || !matchData || matchData.role !== "requester") return;
+    if (status !== "waiting" || !matchData) return;
 
     const poll = setInterval(async () => {
       try {
@@ -140,7 +148,7 @@ export default function MatchMapPage() {
     return () => clearInterval(poll);
   }, [status, matchData]);
 
-  // 承認/拒否ハンドラ（receiver用）
+  // 承認/拒否ハンドラ
   const handleRespond = async (action: "accept" | "reject") => {
     if (!matchData) return;
     setResponding(true);
@@ -151,9 +159,20 @@ export default function MatchMapPage() {
         body: JSON.stringify({ matchId: matchData.id, action }),
       });
       if (res.ok) {
+        const data = await res.json();
         if (action === "accept") {
-          setMatchData((prev) => prev ? { ...prev, status: "ACCEPTED" } : null);
-          setStatus("accepted");
+          if (data.match.status === "ACCEPTED") {
+            // receiver承認 → 即成立
+            setMatchData((prev) => prev ? { ...prev, status: "ACCEPTED" } : null);
+            setStatus("accepted");
+          } else {
+            // 承認 → 相手の応答待ち（30秒カウントダウン開始）
+            setMatchData((prev) => prev ? {
+              ...prev,
+              expiresAt: new Date(Date.now() + 30 * 1000).toISOString(),
+            } : null);
+            setStatus("waiting");
+          }
         } else {
           setMatchData(null);
           setStatus("searching");
@@ -226,7 +245,9 @@ export default function MatchMapPage() {
   }, []);
 
   const hasTag = !!profile?.currentTag;
-  const genderColor = matchData?.other.gender === "woman" ? "#ff4d6d" : "#4d9fff";
+  const otherGender = matchData?.other.gender;
+  const genderColor = (otherGender === "woman" || otherGender === "女性") ? "#ff4d6d" : "#4d9fff";
+  const genderLabel = (otherGender === "woman" || otherGender === "女性") ? "女性" : "男性";
 
   return (
     <div className={styles.root}>
@@ -279,45 +300,114 @@ export default function MatchMapPage() {
           </div>
         )}
 
-        {/* Matched state */}
+        {/* Matched state — プロフィールカード */}
         {status === "matched" && matchData && (
-          <div className={styles.matchCard}>
+          <div className={styles.profileCard}>
             <MatchTimer expiresAt={matchData.expiresAt} onExpire={handleMatchExpire} />
-            <div className={styles.matchInfo}>
-              <span className={styles.matchDot} style={{ background: genderColor }} />
-              <span className={styles.matchNickname}>{matchData.other.nickname}</span>
-              <span className={styles.matchAge}>{matchData.other.age}</span>
-            </div>
-            {matchData.role === "receiver" ? (
-              <div className={styles.matchActions}>
-                <button
-                  className={styles.acceptBtn}
-                  onClick={() => handleRespond("accept")}
-                  disabled={responding}
-                >
-                  承認
-                </button>
-                <button
-                  className={styles.rejectBtn}
-                  onClick={() => handleRespond("reject")}
-                  disabled={responding}
-                >
-                  拒否
-                </button>
+
+            {/* ヘッダー: 名前・性別・年齢 */}
+            <div className={styles.profileCardHeader}>
+              <span className={styles.profileCardAvatar} style={{ background: genderColor }}>
+                {matchData.other.nickname.charAt(0)}
+              </span>
+              <div className={styles.profileCardName}>
+                <span className={styles.profileCardNickname}>{matchData.other.nickname}</span>
+                <span className={styles.profileCardMeta}>{genderLabel} / {matchData.other.age}</span>
               </div>
-            ) : (
-              <p className={styles.matchWaiting}>相手の応答を待っています...</p>
-            )}
+            </div>
+
+            {/* 基本情報 */}
+            <div className={styles.profileCardBody}>
+              {matchData.other.prefecture && (
+                <div className={styles.profileCardRow}>
+                  <span className={styles.profileCardLabel}>居住地</span>
+                  <span className={styles.profileCardValue}>{matchData.other.prefecture}</span>
+                </div>
+              )}
+              {matchData.other.occupation && (
+                <div className={styles.profileCardRow}>
+                  <span className={styles.profileCardLabel}>職業</span>
+                  <span className={styles.profileCardValue}>{matchData.other.occupation}</span>
+                </div>
+              )}
+              {matchData.other.currentTag && (
+                <div className={styles.profileCardRow}>
+                  <span className={styles.profileCardLabel}>タグ</span>
+                  <span className={styles.profileCardTag}>{matchData.other.currentTag}</span>
+                </div>
+              )}
+              {matchData.other.meetingPurpose && (
+                <div className={styles.profileCardRow}>
+                  <span className={styles.profileCardLabel}>目的</span>
+                  <span className={styles.profileCardValue}>{matchData.other.meetingPurpose}</span>
+                </div>
+              )}
+              {matchData.other.interests && matchData.other.interests.length > 0 && (
+                <div className={styles.profileCardRow}>
+                  <span className={styles.profileCardLabel}>興味</span>
+                  <div className={styles.profileCardChips}>
+                    {matchData.other.interests.slice(0, 4).map((tag) => (
+                      <span key={tag} className={styles.profileCardChip}>{tag}</span>
+                    ))}
+                    {matchData.other.interests.length > 4 && (
+                      <span className={styles.profileCardChip}>+{matchData.other.interests.length - 4}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+              {matchData.other.bio && (
+                <p className={styles.profileCardBio}>{matchData.other.bio}</p>
+              )}
+            </div>
+
+            {/* アクション */}
+            <div className={styles.matchActions}>
+              <button
+                className={styles.acceptBtn}
+                onClick={() => handleRespond("accept")}
+                disabled={responding}
+              >
+                承認
+              </button>
+              <button
+                className={styles.rejectBtn}
+                onClick={() => handleRespond("reject")}
+                disabled={responding}
+              >
+                拒否
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Waiting state — 相手の承認待ち */}
+        {status === "waiting" && matchData && (
+          <div className={styles.profileCard}>
+            <MatchTimer expiresAt={matchData.expiresAt} onExpire={handleMatchExpire} />
+            <div className={styles.profileCardHeader}>
+              <span className={styles.profileCardAvatar} style={{ background: genderColor }}>
+                {matchData.other.nickname.charAt(0)}
+              </span>
+              <div className={styles.profileCardName}>
+                <span className={styles.profileCardNickname}>{matchData.other.nickname}</span>
+                <span className={styles.profileCardMeta}>{genderLabel} / {matchData.other.age}</span>
+              </div>
+            </div>
+            <p className={styles.matchWaiting}>相手の承認を待っています...</p>
           </div>
         )}
 
         {/* Accepted state */}
         {status === "accepted" && matchData && (
-          <div className={styles.matchCard}>
-            <div className={styles.matchSuccess}>
-              <span className={styles.matchDot} style={{ background: genderColor }} />
-              <span className={styles.matchNickname}>{matchData.other.nickname}</span>
-              <span className={styles.matchSuccessText}>とマッチしました！</span>
+          <div className={styles.profileCard}>
+            <div className={styles.profileCardHeader}>
+              <span className={styles.profileCardAvatar} style={{ background: genderColor }}>
+                {matchData.other.nickname.charAt(0)}
+              </span>
+              <div className={styles.profileCardName}>
+                <span className={styles.profileCardNickname}>{matchData.other.nickname}</span>
+                <span className={styles.matchSuccessText}>とマッチしました！</span>
+              </div>
             </div>
             <button className={styles.dismissBtn} onClick={handleDismissAccepted}>
               閉じる

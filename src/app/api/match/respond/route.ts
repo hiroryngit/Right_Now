@@ -21,8 +21,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Match not found" }, { status: 404 });
   }
 
-  // 受信者のみ応答可能
-  if (match.receiverId !== user.id) {
+  // requester または receiver のみ応答可能
+  const isRequester = match.requesterId === user.id;
+  const isReceiver = match.receiverId === user.id;
+  if (!isRequester && !isReceiver) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -37,6 +39,26 @@ export async function POST(request: Request) {
       data: { status: "EXPIRED" },
     });
     return NextResponse.json({ error: "Match has expired" }, { status: 410 });
+  }
+
+  // requester が拒否 → REJECTED
+  // requester が承認 → PENDING のまま（expiresAtを30秒リセット、相手の応答待ち）
+  // receiver が承認/拒否 → 従来通り
+  if (isRequester) {
+    if (action === "reject") {
+      const updated = await prisma.match.update({
+        where: { id: matchId },
+        data: { status: "REJECTED" },
+      });
+      return NextResponse.json({ match: { id: updated.id, status: updated.status } });
+    } else {
+      // 承認 → expiresAtを30秒後にリセットし、PENDING維持（デモ・実ユーザー問わず）
+      const updated = await prisma.match.update({
+        where: { id: matchId },
+        data: { expiresAt: new Date(Date.now() + 30 * 1000) },
+      });
+      return NextResponse.json({ match: { id: updated.id, status: "WAITING" } });
+    }
   }
 
   const newStatus = action === "accept" ? "ACCEPTED" : "REJECTED";

@@ -314,3 +314,112 @@ $radius-full:  9999px;
   &:hover { background: rgba(255, 255, 255, 0.18); }
 }
 
+// ── Profile card (match detail) ──────────────────────────────────────────────
+.profileCard {
+  width: 100%;
+  background: rgba($surface, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba($accent, 0.25);
+  border-radius: $radius-md;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeInLabel 0.4s ease both;
+}
+
+.profileCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profileCardAvatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.profileCardName {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profileCardNickname {
+  font-size: 16px;
+  font-weight: 700;
+  color: $text;
+  line-height: 1.2;
+}
+
+.profileCardMeta {
+  font-size: 12px;
+  color: $muted;
+}
+
+.profileCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.profileCardRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.profileCardLabel {
+  flex-shrink: 0;
+  width: 48px;
+  font-size: 11px;
+  font-weight: 600;
+  color: $muted;
+  padding-top: 2px;
+}
+
+.profileCardValue {
+  font-size: 13px;
+  color: $text;
+}
+
+.profileCardTag {
+  font-size: 12px;
+  color: $accent;
+  background: rgba($accent, 0.12);
+  padding: 2px 8px;
+  border-radius: $radius-full;
+}
+
+.profileCardChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.profileCardChip {
+  font-size: 11px;
+  color: $text;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 8px;
+  border-radius: $radius-full;
+}
+
+.profileCardBio {
+  font-size: 12px;
+  color: $muted;
+  margin: 4px 0 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
