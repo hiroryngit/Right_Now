@@ -78,6 +78,12 @@ export async function DELETE(request: Request) {
   }
 
   const { id } = await request.json();
+
+  // 関連するマッチレコードを先に削除
+  await prisma.match.deleteMany({
+    where: { OR: [{ requesterId: id }, { receiverId: id }] },
+  });
+
   await prisma.profile.deleteMany({ where: { id, isDemo: true } });
 
   return NextResponse.json({ success: true });

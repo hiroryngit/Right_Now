@@ -128,9 +128,12 @@ export const useDemoUsers = (currentLocation: { lat: number; lng: number } | nul
     const bio = `こんにちは、${name}です。`;
     const id = `demo-${gender}-${Date.now()}`;
 
+    // 最低200m（約0.002度）〜最大1.5km離す
+    const angle = Math.random() * 2 * Math.PI;
+    const dist = 0.002 + Math.random() * 0.013;
     const coords = {
-      lat: currentLocation.lat + (Math.random() - 0.5) * 0.03,
-      lng: currentLocation.lng + (Math.random() - 0.5) * 0.03,
+      lat: currentLocation.lat + Math.sin(angle) * dist,
+      lng: currentLocation.lng + Math.cos(angle) * dist,
     };
 
     const newDemo: Profile = {
