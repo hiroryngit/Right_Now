@@ -32,6 +32,7 @@ interface MatchOther {
   interests?: string[];
 }
 
+
 interface MatchData {
   id: string;
   status: string;
@@ -243,6 +244,16 @@ export default function MatchMapPage() {
   const handleAdminToastDone = useCallback(() => {
     setShowAdminToast(false);
   }, []);
+
+  useEffect(() => {
+    if (status === "accepted" && matchData) {
+      // 3秒ほど「マッチしました！」を見せてから移動させる
+      const timer = setTimeout(() => {
+        router.push(`/chat/${matchData.id}`);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [status, matchData, router]);
 
   const hasTag = !!profile?.currentTag;
   const otherGender = matchData?.other.gender;

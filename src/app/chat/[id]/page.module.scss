@@ -1,0 +1,145 @@
+.chatRoot {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: #fdfdfd;
+}
+
+.chatHeader {
+  padding: 1rem;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: center;
+
+  .timerBox {
+    text-align: center;
+    .timerLabel {
+      display: block;
+      font-size: 0.7rem;
+      color: #666;
+    }
+    .time {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #ff4d6d;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+}
+
+.messageArea {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.systemInfo {
+  background: #f0f0f0;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 2rem;
+}
+
+.chatFooter {
+  padding: 1rem;
+  background: #fff;
+  border-top: 1px solid #eee;
+}
+
+.authCard {
+  background: #222;
+  color: #fff;
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  text-align: center;
+
+  .authTitle {
+    font-size: 0.8rem;
+    color: #aaa;
+    margin-bottom: 0.5rem;
+  }
+
+  .qrPlaceholder {
+    width: 120px;
+    height: 120px;
+    background: #fff;
+    margin: 0.5rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-weight: bold;
+    border-radius: 8px;
+  }
+
+  .passSection {
+    margin-top: 0.5rem;
+    .passLabel {
+      font-size: 0.7rem;
+      display: block;
+      color: #aaa;
+    }
+    .passValue {
+      font-size: 1.8rem;
+      font-weight: 900;
+      letter-spacing: 4px;
+    }
+  }
+
+  .authNote {
+    font-size: 0.7rem;
+    color: #888;
+    margin-top: 0.5rem;
+  }
+}
+
+.inputWrapper {
+  display: flex;
+  gap: 0.5rem;
+  .chatInput {
+    flex: 1;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+  }
+  .sendBtn {
+    background: #4d9fff;
+    color: white;
+    border: none;
+    padding: 0 1.2rem;
+    border-radius: 12px;
+    font-weight: bold;
+  }
+}
+
+// src/app/chat/[id]/page.module.scss に追記
+
+.messageList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.myMessageBubble {
+  align-self: flex-end; // 右寄せ
+  background: #4d9fff;
+  color: white;
+  padding: 0.6rem 1rem;
+  border-radius: 18px 18px 2px 18px; // 吹き出しっぽく
+  max-width: 80%;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.qrCodeWrapper {
+  background: white;
+  padding: 8px;
+  border-radius: 8px;
+  display: inline-block;
+  margin: 0.5rem auto;
+}
