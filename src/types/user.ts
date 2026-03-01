@@ -21,7 +21,11 @@ export interface Profile {
     lat: number;
     lng: number;
   };
-  rating: number;       // ★ page.tsx の表示に必要
-  education?: string | null; // ★ useProfile.ts にあった項目
+  rating: number;
+  education?: string | null;
+  preferredGender?: string;
+  preferredAge?: string | null;
+  preferredPurpose?: string | null;
+  preferredDistance?: number | null;
   createdAt: any;
 }

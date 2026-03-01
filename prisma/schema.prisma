@@ -15,6 +15,8 @@ enum MatchStatus {
   ACCEPTED
   REJECTED
   EXPIRED
+  DEMO_ACCEPT
+  DEMO_REJECT
 }
 
 model Profile {
@@ -43,10 +45,26 @@ model Profile {
 }
 
 model Match {
-  id          String      @id @default(uuid())
-  requesterId String
-  receiverId  String
-  status      MatchStatus @default(PENDING)
-  expiresAt   DateTime
-  createdAt   DateTime    @default(now())
+  id            String      @id @default(uuid())
+  requesterId   String
+  receiverId    String
+  status        MatchStatus @default(PENDING)
+  expiresAt     DateTime
+  passcode      Int?
+  verified      Boolean     @default(false)
+  chatExpiresAt DateTime?
+  typingUserId  String?
+  typingAt      DateTime?
+  createdAt     DateTime    @default(now())
+  messages      Message[]
+}
+
+model Message {
+  id        String    @id @default(uuid())
+  matchId   String
+  senderId  String
+  text      String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  match     Match     @relation(fields: [matchId], references: [id])
 }

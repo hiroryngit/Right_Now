@@ -12,9 +12,11 @@
     "db:generate": "prisma generate"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^6.4.1",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.49.1",
+    "jsqr": "^1.4.0",
     "lucide-react": "^0.575.0",
     "mapbox-gl": "^3.9.4",
     "next": "16.1.6",

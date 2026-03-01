@@ -52,19 +52,52 @@ export async function POST(request: Request) {
       });
       return NextResponse.json({ match: { id: updated.id, status: updated.status } });
     } else {
-      // 承認 → expiresAtを30秒後にリセットし、PENDING維持（デモ・実ユーザー問わず）
-      const updated = await prisma.match.update({
-        where: { id: matchId },
-        data: { expiresAt: new Date(Date.now() + 30 * 1000) },
+      // 承認 → 相手がデモユーザーか確認
+      const receiver = await prisma.profile.findUnique({
+        where: { id: match.receiverId },
+        select: { isDemo: true },
       });
-      return NextResponse.json({ match: { id: updated.id, status: "WAITING" } });
+
+      if (receiver?.isDemo) {
+        // デモユーザー: ランダムなタイミング(3〜20秒後)で承認or拒否を決定
+        const delay = 3 + Math.floor(Math.random() * 18);
+        const willAccept = Math.random() < 0.5;
+        // expiresAtに応答予定時刻、statusでACCEPTED/REJECTEDを予約的に記録
+        // → GETポーリングで時刻を過ぎたら結果を返す
+        const respondAt = new Date(Date.now() + delay * 1000);
+        const demoDecision = willAccept ? "DEMO_ACCEPT" as const : "DEMO_REJECT" as const;
+        const updated = await prisma.match.update({
+          where: { id: matchId },
+          data: { status: demoDecision, expiresAt: respondAt },
+        });
+        // クライアントにはWAITINGとして返す（30秒のタイマー表示用）
+        return NextResponse.json({
+          match: {
+            id: updated.id,
+            status: "WAITING",
+            expiresAt: new Date(Date.now() + 30 * 1000).toISOString(),
+          },
+        });
+      } else {
+        // 実ユーザー: expiresAtを30秒後にリセットし、PENDING維持
+        const updated = await prisma.match.update({
+          where: { id: matchId },
+          data: { expiresAt: new Date(Date.now() + 30 * 1000) },
+        });
+        return NextResponse.json({ match: { id: updated.id, status: "WAITING" } });
+      }
     }
   }
 
   const newStatus = action === "accept" ? "ACCEPTED" : "REJECTED";
+  const updateData: Record<string, unknown> = { status: newStatus };
+  if (newStatus === "ACCEPTED") {
+    updateData.passcode = Math.floor(1000 + Math.random() * 9000);
+    updateData.chatExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+  }
   const updated = await prisma.match.update({
     where: { id: matchId },
-    data: { status: newStatus },
+    data: updateData,
   });
 
   return NextResponse.json({

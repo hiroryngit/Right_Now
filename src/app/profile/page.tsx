@@ -91,7 +91,7 @@ export default function ProfilePage() {
         setEditInterests([...(profile.interests ?? [])]);
         break;
       case "preferredGender":
-        setEditPreferredGender(profile.preferredGender);
+        setEditPreferredGender(profile.preferredGender ?? "");
         break;
       case "preferredAge":
         setEditPreferredAge(profile.preferredAge ?? "");

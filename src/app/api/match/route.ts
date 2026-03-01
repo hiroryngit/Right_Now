@@ -260,16 +260,6 @@ async function fetchOnlineUsers(): Promise<UserRow[]> {
   `;
 }
 
-// match IDから決定論的な擬似乱数を生成
-function hashCode(str: string): number {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash) + str.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash);
-}
-
 // GET: 現在のアクティブなマッチ状態を取得
 export async function GET() {
   const supabase = await createClient();
@@ -278,23 +268,16 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const pending = await prisma.match.findFirst({
+  // PENDING または DEMO_ACCEPT/DEMO_REJECT（デモ応答待ち）のマッチを検索
+  const active = await prisma.match.findFirst({
     where: {
-      status: "PENDING",
+      status: { in: ["PENDING", "DEMO_ACCEPT", "DEMO_REJECT"] },
       OR: [{ requesterId: user.id }, { receiverId: user.id }],
     },
   });
 
-  if (pending) {
-    if (new Date(pending.expiresAt) < new Date()) {
-      await prisma.match.update({
-        where: { id: pending.id },
-        data: { status: "EXPIRED" },
-      });
-      return NextResponse.json({ match: null });
-    }
-
-    const otherId = pending.requesterId === user.id ? pending.receiverId : pending.requesterId;
+  if (active) {
+    const otherId = active.requesterId === user.id ? active.receiverId : active.requesterId;
     const other = await prisma.profile.findUnique({
       where: { id: otherId },
       select: {
@@ -304,43 +287,79 @@ export async function GET() {
       },
     });
 
-    // デモユーザーがreceiverの場合、ランダムなタイミングで自動応答
-    if (other?.isDemo && pending.requesterId === user.id) {
-      const startTime = pending.expiresAt.getTime() - 30 * 1000;
-      const elapsed = (Date.now() - startTime) / 1000;
-      // match IDから決定論的にdelay(5〜25秒)と承認/拒否を決める
-      const delay = 5 + (hashCode(pending.id) % 21);
-      const willAccept = (hashCode(pending.id + "decision") % 100) < 70;
+    // 両者の距離を計算
+    const distanceResult: { dist_km: number }[] = await prisma.$queryRaw`
+      SELECT ST_Distance(
+        (SELECT "lastLocation"::geography FROM "Profile" WHERE id = ${user.id}),
+        (SELECT "lastLocation"::geography FROM "Profile" WHERE id = ${otherId})
+      ) / 1000.0 AS dist_km
+    `;
+    const distanceKm = distanceResult[0]?.dist_km != null
+      ? Math.round(distanceResult[0].dist_km * 10) / 10
+      : null;
 
-      if (elapsed >= delay) {
-        const newStatus = willAccept ? "ACCEPTED" : "REJECTED";
+    // デモユーザーの応答予約: expiresAtが応答予定時刻
+    if (active.status === "DEMO_ACCEPT" || active.status === "DEMO_REJECT") {
+      if (new Date(active.expiresAt) <= new Date()) {
+        // 応答時刻到達 → 結果を確定
+        const finalStatus = active.status === "DEMO_ACCEPT" ? "ACCEPTED" : "REJECTED";
+        const updateData: Record<string, unknown> = { status: finalStatus };
+        if (finalStatus === "ACCEPTED") {
+          updateData.passcode = Math.floor(1000 + Math.random() * 9000);
+          updateData.chatExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+        }
         await prisma.match.update({
-          where: { id: pending.id },
-          data: { status: newStatus },
+          where: { id: active.id },
+          data: updateData,
         });
-        if (willAccept) {
+        if (finalStatus === "ACCEPTED") {
+          const updatedMatch = await prisma.match.findUnique({ where: { id: active.id } });
           return NextResponse.json({
             match: {
-              id: pending.id,
+              id: active.id,
               status: "ACCEPTED",
               role: "requester",
-              expiresAt: pending.expiresAt.toISOString(),
+              expiresAt: active.expiresAt.toISOString(),
+              passcode: updatedMatch?.passcode,
+              chatExpiresAt: updatedMatch?.chatExpiresAt?.toISOString(),
               other,
+              distanceKm,
             },
           });
         } else {
           return NextResponse.json({ match: null });
         }
       }
+      // まだ応答時刻前 → クライアントにはPENDING扱いで返す
+      return NextResponse.json({
+        match: {
+          id: active.id,
+          status: "PENDING",
+          role: active.requesterId === user.id ? "requester" : "receiver",
+          expiresAt: active.expiresAt.toISOString(),
+          other,
+          distanceKm,
+        },
+      });
+    }
+
+    // 通常のPENDINGマッチ（実ユーザー間）
+    if (new Date(active.expiresAt) < new Date()) {
+      await prisma.match.update({
+        where: { id: active.id },
+        data: { status: "EXPIRED" },
+      });
+      return NextResponse.json({ match: null });
     }
 
     return NextResponse.json({
       match: {
-        id: pending.id,
-        status: pending.status,
-        role: pending.requesterId === user.id ? "requester" : "receiver",
-        expiresAt: pending.expiresAt.toISOString(),
+        id: active.id,
+        status: active.status,
+        role: active.requesterId === user.id ? "requester" : "receiver",
+        expiresAt: active.expiresAt.toISOString(),
         other,
+        distanceKm,
       },
     });
   }
@@ -364,13 +383,26 @@ export async function GET() {
       },
     });
 
+    const distResult2: { dist_km: number }[] = await prisma.$queryRaw`
+      SELECT ST_Distance(
+        (SELECT "lastLocation"::geography FROM "Profile" WHERE id = ${user.id}),
+        (SELECT "lastLocation"::geography FROM "Profile" WHERE id = ${otherId})
+      ) / 1000.0 AS dist_km
+    `;
+    const distKm2 = distResult2[0]?.dist_km != null
+      ? Math.round(distResult2[0].dist_km * 10) / 10
+      : null;
+
     return NextResponse.json({
       match: {
         id: accepted.id,
         status: accepted.status,
         role: accepted.requesterId === user.id ? "requester" : "receiver",
         expiresAt: accepted.expiresAt.toISOString(),
+        passcode: accepted.passcode,
+        chatExpiresAt: accepted.chatExpiresAt?.toISOString(),
         other,
+        distanceKm: distKm2,
       },
     });
   }
@@ -465,6 +497,9 @@ export async function POST() {
     },
   });
 
+  const myRow = rows[myIdx];
+  const postDistKm = Math.round(haversineKm(myRow.lat, myRow.lng, picked.lat, picked.lng) * 10) / 10;
+
   return NextResponse.json({
     match: {
       id: match.id,
@@ -472,6 +507,7 @@ export async function POST() {
       role: "requester",
       expiresAt: match.expiresAt.toISOString(),
       other: pickedProfile,
+      distanceKm: postDistKm,
     },
   });
 }

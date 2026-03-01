@@ -12,7 +12,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { AdminPanel } from "@/components/Admin/AdminPanel";
 import { AdminToast } from "@/components/Admin/AdminToast";
 import { useDemoUsers } from "@/hooks/useDemoUsers";
-import { Star } from "lucide-react";
+import { Star, MapPin, History, User } from "lucide-react";
 import { Gender } from "../types/user";
 import styles from "./page.module.scss";
 
@@ -39,6 +39,7 @@ interface MatchData {
   role: "requester" | "receiver";
   expiresAt: string;
   other: MatchOther;
+  distanceKm?: number | null;
 }
 
 export default function MatchMapPage() {
@@ -50,6 +51,7 @@ export default function MatchMapPage() {
   const [prevUser, setPrevUser] = useState<typeof user>(undefined as any);
   const [matchData, setMatchData] = useState<MatchData | null>(null);
   const [responding, setResponding] = useState(false);
+  const [rejectedMessage, setRejectedMessage] = useState<string | null>(null);
   const searchIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const router = useRouter();
 
@@ -132,8 +134,15 @@ export default function MatchMapPage() {
         const data = await res.json();
 
         if (!data.match || data.match.status === "EXPIRED" || data.match.status === "REJECTED") {
+          const msg = data.match?.status === "REJECTED"
+            ? "マッチングが拒否されました"
+            : "マッチングの期限が切れました";
+          setRejectedMessage(msg);
           setMatchData(null);
-          setStatus("searching");
+          setTimeout(() => {
+            setRejectedMessage(null);
+            setStatus("searching");
+          }, 3000);
           return;
         }
         if (data.match.status === "ACCEPTED") {
@@ -192,11 +201,12 @@ export default function MatchMapPage() {
     setStatus("searching");
   }, []);
 
-  // マッチ成立画面を閉じる
-  const handleDismissAccepted = useCallback(() => {
-    setMatchData(null);
-    setStatus("idle");
-  }, []);
+  // マッチ成立 → 即座にチャットへ遷移
+  useEffect(() => {
+    if (status === "accepted" && matchData) {
+      router.push(`/chat/${matchData.id}`);
+    }
+  }, [status, matchData, router]);
 
   const handleGoOnline = () => {
     if (!user) {
@@ -244,16 +254,6 @@ export default function MatchMapPage() {
   const handleAdminToastDone = useCallback(() => {
     setShowAdminToast(false);
   }, []);
-
-  useEffect(() => {
-    if (status === "accepted" && matchData) {
-      // 3秒ほど「マッチしました！」を見せてから移動させる
-      const timer = setTimeout(() => {
-        router.push(`/chat/${matchData.id}`);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [status, matchData, router]);
 
   const hasTag = !!profile?.currentTag;
   const otherGender = matchData?.other.gender;
@@ -329,6 +329,16 @@ export default function MatchMapPage() {
 
             {/* 基本情報 */}
             <div className={styles.profileCardBody}>
+              {matchData.distanceKm != null && (
+                <div className={styles.profileCardRow}>
+                  <span className={styles.profileCardLabel}>距離</span>
+                  <span className={styles.profileCardValue}>
+                    {matchData.distanceKm < 1
+                      ? `${Math.round(matchData.distanceKm * 1000)}m`
+                      : `${matchData.distanceKm}km`}
+                  </span>
+                </div>
+              )}
               {matchData.other.prefecture && (
                 <div className={styles.profileCardRow}>
                   <span className={styles.profileCardLabel}>居住地</span>
@@ -408,6 +418,13 @@ export default function MatchMapPage() {
           </div>
         )}
 
+        {/* Rejected/Expired notification */}
+        {rejectedMessage && (
+          <div className={styles.rejectedNotice}>
+            <p>{rejectedMessage}</p>
+          </div>
+        )}
+
         {/* Accepted state */}
         {status === "accepted" && matchData && (
           <div className={styles.profileCard}>
@@ -420,9 +437,7 @@ export default function MatchMapPage() {
                 <span className={styles.matchSuccessText}>とマッチしました！</span>
               </div>
             </div>
-            <button className={styles.dismissBtn} onClick={handleDismissAccepted}>
-              閉じる
-            </button>
+            <p className={styles.matchRedirect}>チャットに移動しています...</p>
           </div>
         )}
 
@@ -437,6 +452,22 @@ export default function MatchMapPage() {
           </button>
         )}
       </div>
+
+      {/* Footer nav */}
+      <nav className={styles.footerNav}>
+        <button className={`${styles.navTab} ${styles.navTabActive}`}>
+          <MapPin size={20} />
+          <span>マップ</span>
+        </button>
+        <button className={styles.navTab} onClick={() => router.push("/history")}>
+          <History size={20} />
+          <span>履歴</span>
+        </button>
+        <button className={styles.navTab} onClick={() => router.push("/profile")}>
+          <User size={20} />
+          <span>プロフィール</span>
+        </button>
+      </nav>
 
       {/* Modals */}
       <LoginModal isOpen={showLoginModal} onClose={handleLoginClose} />
