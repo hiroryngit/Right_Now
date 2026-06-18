@@ -423,7 +423,7 @@ idle ──[マッチング開始]──▶ searching
 pnpm install
 
 # 2. 環境変数を設定（下記参照）
-cp .env_example .env
+cp .env.example .env
 # .env を編集
 
 # 3. PostGIS を含むスキーマを Supabase へ反映
@@ -440,19 +440,18 @@ pnpm dev
 
 ## 環境変数
 
-`.env`（`.env_example` をベースに作成）。
+`.env`（`.env.example` をベースに作成）。
 
 | 変数 | 用途 |
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase プロジェクト URL（クライアント/サーバー両用） |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名キー |
-| `SUPABASE_SERVICE_ROLE_KEY` | サーバー側の特権操作用サービスロールキー |
 | `DATABASE_URL` | Prisma 用接続文字列（プール経由） |
 | `DIRECT_URL` | Prisma マイグレーション用の直接接続 |
 | `NEXT_PUBLIC_MAPBOX_TOKEN` | Mapbox GL JS のアクセストークン |
-| `GEMINI_API_KEY` | Google Generative AI（Gemini）API キー |
+| `GITHUB_MODELS_API_KEY` | GitHub Models API キー（AIチャット機能で使用） |
 
-> `.env_example` には Supabase / DB 系のみ記載されています。地図と AI を動かすには `NEXT_PUBLIC_MAPBOX_TOKEN` と `GEMINI_API_KEY` の追加が必要です。
+> 上記は実際にコードから参照される変数です（`.env.example` と一致）。
 
 ---
 
